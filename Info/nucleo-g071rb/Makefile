@@ -41,14 +41,13 @@ UCFLAGS  = -std=gnu99 -W -Wall -Wextra
 UCFLAGS += -fmessage-length=0 -fdata-sections -ffunction-sections
 # Default flags for linkage
 ULDFLAGS = -Wl,-Map=$(TARGET).map,--gc-sections -specs=nano.specs -lc -lnosys
-#ULDFLAGS = -Wl,-Map=$(TARGET).map,--gc-sections -specs=fpu/nosys.specs 
-#ULDFLAGS = -Wl,-Map=$(TARGET).map,--gc-sections -specs=nosys.specs 
 #ULDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
 # Release flags additional for ASM 
 RASFLAGS =
 # Release flags additional for C 
-RCFLAGS  = -O2 -g3
+RCFLAGS  = -O2 -g3 
+#RCFLAGS  = -O
 # Release flags additional for linkage 
 RLDFLAGS = 
 
@@ -72,16 +71,38 @@ ASRC = app/startup_stm32g071xx.s
 
 # List C source files
 CSRC  = app/system_stm32g0xx.c
+CSRC += app/board/nucleo_g071x.c
+CSRC += app/it.c
 CSRC += app/main.c
+CSRC += app/tasks/task_test.c
+
+## ST source files
+CSRC += drivers/stm32g0xx_hal_driver/Src/stm32g0xx_ll_utils.c
+
+## mp_lib source files
+CSRC += mp_lib/mp.c
+CSRC += mp_lib/portable/FreeRtos/stm32g0xx/mp_port_uart.c
+CSRC += mp_lib/portable/FreeRtos/stm32g0xx/mp_port_adc.c
+CSRC += mp_lib/portable/FreeRtos/stm32g0xx/mp_port_spi.c
+
+## FreeRTOS source files
+CSRC += middlewares/FreeRTOS-Kernel/tasks.c
+CSRC += middlewares/FreeRTOS-Kernel/list.c
+CSRC += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c
 
 # List of directories to include
 UINCDIR  = app
 UINCDIR += drivers/cmsis_device_g0/Include/
 UINCDIR += drivers/CMSIS_5/CMSIS/Core/Include/
 UINCDIR += drivers/stm32g0xx_hal_driver/Inc/
+UINCDIR += middlewares/FreeRTOS-Kernel/include/
+UINCDIR += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/
+UINCDIR += mp_lib/include/
+UINCDIR += mp_lib/portable/FreeRtos/stm32g0xx/
 
 # List of user define
 UDEFS  = STM32G071xx
+UDEFS += BOARD_NUCLEO_G071X
 
 # List of release define in more
 RDEFS = 
@@ -160,7 +181,7 @@ debug:$(TARGET).elf
 
 # Build sources to generate elf file
 $(TARGET).elf: $(ASOBJS) $(COBJS)
-	$(CC) -o $@ $(LDFLAGS) $(LIBS) $(ASOBJS) $(COBJS) 
+	$(CC) -o $@ $(ASOBJS) $(COBJS) $(LDFLAGS) $(LIBS) 
 	$(SIZE) $@
 
 # Build ASM sources
@@ -213,14 +234,19 @@ disassemble:
 #flash_eeprom_erase:
 #	@openocd -f $(CONFIFDIR)/openocd/init.cfg -f $(CONFIFDIR)/openocd/flash_eeprom_erase.cfg
 	
-## Run gdb/openocd for load and debug.
-#gdb:debug
-#	$(GDB) --command=$(CONFIFDIR)/gdb/gdbinit.cfg $(TARGET).elf
+	
+# Run gdb/openocd for load and debug.
+gdb:debug
+	$(GDB) --command=$(TOOLDIR)/gdb/gdbinit_stm32g0x.cfg $(TARGET).elf
+	
+# Run cgdb/openocd for load and debug with color.
+stflash:bin
+	st-flash write $(TARGET).bin 0x8000000
 	
 # Run cgdb/openocd for load and debug with color.
 cgdb:debug
 	cgdb -d $(GDB) --command=$(TOOLDIR)/gdb/gdbinit_stm32g0x.cfg $(TARGET).elf
-
+	
 	
 # Clean projet
 clean:
