@@ -49,6 +49,10 @@ void task_test( void* pvParameters )
     
     // Init UART1
     mp_uart_init(drv_uart1);
+    mp_uart_config(drv_uart1, MP_UART_BAUDRATE_115200,
+                            MP_UART_DATA_8BITS,
+                            MP_UART_PARITY_NO,
+                            MP_UART_STOPBIT_1);
     
     // Init ADC1
     mp_adc_init(drv_adc1);
@@ -58,12 +62,18 @@ void task_test( void* pvParameters )
     mp_adc_init(drv_adc2);
     
     
+    int cpt = 0;
     while(1)
     {
-        vTaskDelay(950 / portTICK_PERIOD_MS);
+        vTaskDelay(450 / portTICK_PERIOD_MS);
+        //mp_gpio_set(drv_gpio, LED_GREEN | LED_RED);
         boardLedGreenOn();
         vTaskDelay(50 / portTICK_PERIOD_MS);
+        //mp_gpio_reset(drv_gpio, LED_GREEN);
         boardLedGreenOff();
+        
+        mp_uart_printf(drv_uart1, "Hello:%u\r\n", cpt);
+        cpt++;
         
         //mp_adc_get_volatag(&drv_adc1, 0);
         //mp_adc_get_volatag(&drv_adc1, 4);

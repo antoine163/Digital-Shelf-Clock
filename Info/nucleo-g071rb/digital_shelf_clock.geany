@@ -28,17 +28,15 @@ long_line_behaviour=2
 long_line_column=80
 
 [files]
-current_page=9
-FILE_NAME_0=1990;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Ftasks%2Ftask_test.c;0;4
-FILE_NAME_1=2294;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Fmp.c;0;4
-FILE_NAME_2=3619;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Finclude%2Fmp%2Fdrivers%2Fuart.h;0;4
-FILE_NAME_3=1432;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_port_uart.h;0;4
-FILE_NAME_4=1447;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_port_uart.c;0;4
-FILE_NAME_5=1714;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpDriversTable.h;0;4
-FILE_NAME_6=526;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Finclude%2Fmp_def_empty_drv.h;0;4
-FILE_NAME_7=1789;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Fboard%2Fnucleo_g071x.h;0;4
-FILE_NAME_8=34532;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fdrivers%2Fstm32g0xx_hal_driver%2FInc%2Fstm32g0xx_ll_gpio.h;0;2
-FILE_NAME_9=1749;Make;0;EUTF-8;1;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FMakefile;0;4
+current_page=3
+FILE_NAME_0=1718;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Ftasks%2Ftask_test.c;0;4
+FILE_NAME_1=3499;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Finclude%2Fmp%2Fdrivers%2Fuart.h;0;4
+FILE_NAME_2=2258;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_port_uart.h;0;4
+FILE_NAME_3=5609;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_port_uart.c;0;4
+FILE_NAME_4=1367;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpHardMap.h;0;4
+FILE_NAME_5=1864;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fmp_lib%2Fmp.c;0;4
+FILE_NAME_6=1760;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpDriversTable.h;0;4
+FILE_NAME_7=83525;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fdrivers%2Fstm32g0xx_hal_driver%2FInc%2Fstm32g0xx_ll_rcc.h;0;2
 
 [VTE]
 last_dir=/home/antoine/Projects/Digital-Shelf-Clock/Info/nucleo-g071rb
@@ -54,7 +52,7 @@ external_dirs=
 
 [build-menu]
 NF_00_LB=_Make
-NF_00_CM=make clean debug
+NF_00_CM=make clean && make -j8 debug
 NF_00_WD=%p
 NF_01_LB=Make Custom _Target...
 NF_01_CM=make 

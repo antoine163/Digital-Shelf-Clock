@@ -25,6 +25,9 @@
 #ifndef MP_SPI_H
 #define MP_SPI_H
 
+// Typedef ---------------------------------------------------------------------
+typedef void mp_spi_t;
+
 // Include ---------------------------------------------------------------------
 #include "mpDriversTable.h"
 #include "mp_port_spi.h"
@@ -38,9 +41,6 @@
 #ifdef MP_ADD_SPI_DRIVER_HEADER
     #include MP_ADD_SPI_DRIVER_HEADER
 #endif // MP_ADD_SPI_DRIVER_HEADER
-
-// Typedef ---------------------------------------------------------------------
-typedef void mp_spi_t;
 
 // Extern global variables -----------------------------------------------------
 #undef MP_DRV_SPI

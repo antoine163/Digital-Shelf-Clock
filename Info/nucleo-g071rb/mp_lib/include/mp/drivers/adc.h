@@ -25,6 +25,9 @@
 #ifndef MP_ADC_H
 #define MP_ADC_H
 
+// Typedef ---------------------------------------------------------------------
+typedef void mp_adc_t;
+
 // Include ---------------------------------------------------------------------
 #include "mpDriversTable.h"
 #include "mp_port_adc.h"
@@ -38,9 +41,6 @@
 #endif // MP_ADD_ADC_DRIVER_HEADER
 
 #include "mp_def_empty_drv.h"
-
-// Typedef ---------------------------------------------------------------------
-typedef void mp_adc_t;
 
 // Extern global variables -----------------------------------------------------
 #undef MP_DRV_ADC

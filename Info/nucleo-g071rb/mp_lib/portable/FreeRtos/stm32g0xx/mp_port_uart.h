@@ -27,15 +27,29 @@
 
 // Include ---------------------------------------------------------------------
 #include <stm32g0xx.h>
+// No necessary to include "mp/drivers/uart.h" here. It is "mp/drivers/uart.h"
+// which include "mp_port_uart.h" after to have declare enum, strucur, typdef, ...
+// like mp_uart_baudrate_t, mp_uart_databits_t, mp_uart_stopbit_t ...
 
 // Structure -------------------------------------------------------------------
 typedef struct
 {
     USART_TypeDef* dev;
-    int testUartPort;
+    char txBuf[64];
+    unsigned int lenSend;
+    unsigned int iSend;
 }mp_port_uart_t;
 
 // Prototype functions ---------------------------------------------------------
 int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev);
+int mp_port_uart_deinit(mp_port_uart_t *drv);
+int mp_port_uart_config(mp_port_uart_t *drv,
+                        mp_uart_baudrate_t baudrate,
+                        mp_uart_databits_t databit,
+                        mp_uart_parity_t parity,
+                        mp_uart_stopbit_t stopbit);
+int mp_port_uart_write(mp_port_uart_t *drv, const void *buf, size_t nbyte);
+int mp_port_uart_read(mp_port_uart_t *drv, void *buf, size_t nbyte);
+int mp_port_uart_ctl(mp_port_uart_t *drv, int request, va_list ap);
 
 #endif // MP_FREERTOS_STM32G0XX_UART_H

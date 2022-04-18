@@ -27,6 +27,8 @@
 
 // Include ---------------------------------------------------------------------
 #include "stm32g0xx.h"
+// Don't include "mp/drivers/spi.h" here. It is "mp/drivers/spi.h" which
+// include "mp_port_spi.h" after to have declare enum, strucur, typdef, ...
 
 // Structure -------------------------------------------------------------------
 typedef struct

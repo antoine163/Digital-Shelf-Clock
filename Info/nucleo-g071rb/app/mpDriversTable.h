@@ -44,5 +44,7 @@
     MP_DRV_SPI(drv_spi1,    port,       SPI1)                          \
     MP_DRV_ADC(drv_adc1,    port,       ADC1)                          \
     MP_DRV_ADC(drv_adc2,    ads7822,    drv_spi1)
+    //MP_DRV_GPIO(    drv_gpio,   spiExGpio,  drv_spi1)
 
+    
 #endif // MP_DRIVER_TABLE_H

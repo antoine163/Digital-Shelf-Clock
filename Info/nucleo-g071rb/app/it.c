@@ -29,7 +29,10 @@
 void testHandler()
 {   
     int a=0;
-    a++;
+    while(1)
+    {
+        a++;
+    }
 }
 
 //void PendSV_Handler()
@@ -79,6 +82,6 @@ void I2C2_IRQHandler() {testHandler();}
 void SPI1_IRQHandler() {testHandler();}
 void SPI2_IRQHandler() {testHandler();}
 void USART1_IRQHandler() {testHandler();}
-void USART2_IRQHandler() {testHandler();}
+//void USART2_IRQHandler() {testHandler();}
 void USART3_4_LPUART1_IRQHandler() {testHandler();}
 void CEC_IRQHandler() {testHandler();}

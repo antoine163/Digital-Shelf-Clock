@@ -247,6 +247,10 @@ stflash:bin
 cgdb:debug
 	cgdb -d $(GDB) --command=$(TOOLDIR)/gdb/gdbinit_stm32g0x.cfg $(TARGET).elf
 	
+# Run minicom on /dev/ttyACM0 for nucleo.
+minicom:
+	minicom -b 115200 -D /dev/ttyACM0 -c on
+	
 	
 # Clean projet
 clean:

@@ -27,6 +27,8 @@
 
 // Include ---------------------------------------------------------------------
 #include "stm32g0xx.h"
+// Don't include "mp/drivers/adc.h" here. It is "mp/drivers/adc.h" which
+// include "mp_port_adc.h" after to have declare enum, strucur, typdef, ...
 
 // Structure -------------------------------------------------------------------
 typedef struct

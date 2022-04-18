@@ -26,18 +26,9 @@
 #define MP_DRIVER_UART_H
 
 // Include ---------------------------------------------------------------------
-#include "mpDriversTable.h"
-#include "mp_port_uart.h"
-
-#include "mp_def_empty_drv.h"
-
-// Include UART drivers from devices, know by mpLib
-//#include "..."
-
-// Include additional UART driver from device unknown by mpLib
-#ifdef MP_ADD_UART_DRIVER_HEADER
-    #include MP_ADD_UART_DRIVER_HEADER
-#endif // MP_ADD_UART_DRIVER_HEADER
+#include <stddef.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 // Typedef ---------------------------------------------------------------------
 typedef void mp_uart_t;
@@ -75,6 +66,20 @@ typedef enum
     MP_UART_STOPBIT_2 = 2   //!< 2 stop bit.
 }mp_uart_stopbit_t;
 
+// Include ---------------------------------------------------------------------
+#include "mpDriversTable.h"
+#include "mp_port_uart.h"
+
+#include "mp_def_empty_drv.h"
+
+// Include UART drivers from devices, know by mpLib
+//#include "..."
+
+// Include additional UART driver from device unknown by mpLib
+#ifdef MP_ADD_UART_DRIVER_HEADER
+    #include MP_ADD_UART_DRIVER_HEADER
+#endif // MP_ADD_UART_DRIVER_HEADER
+
 // Extern global variables -----------------------------------------------------
 #undef MP_DRV_UART
 #define MP_DRV_UART(instance, driver, peripheral)                      \
@@ -91,7 +96,7 @@ static inline int mp_uart_init(mp_uart_t *drv)
     
     #undef MP_DRV_UART
     #define MP_DRV_UART(instance, driver, peripheral)                  \
-        else if (drv == &instance)                                     \
+        else if (drv == instance)                                      \
         {                                                              \
             ret = mp_##driver##_uart_init(instance, peripheral);       \
         }
@@ -105,14 +110,130 @@ static inline int mp_uart_init(mp_uart_t *drv)
     return ret;
 }
 
-//int mp_uart_deinit(mp_uart_t *drv);
-//int mp_uart_config(mp_uart_t *drv,  mp_uart_baudrate_t baudrate,
-                                    //mp_uart_databits_t databit,
-                                    //mp_uart_parity_t parity,
-                                    //mp_uart_stopbit_t stopbit);
-//int mp_uart_write(mp_uart_t *drv, const void *buf, size_t nbyte);
-//int mp_uart_read(mp_uart_t *drv, void *buf, size_t nbyte);
+static inline int mp_uart_deinit(mp_uart_t *drv)
+{
+    int ret = -1;
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)                  \
+        else if (drv == instance)                                      \
+        {                                                              \
+            ret = mp_##driver##_uart_deinit(instance);                 \
+        }
+    
+    if(0){}
+    MP_DRIVER_TABLE
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)
+    
+    return ret;
+}
 
-//int mp_uart_ctl(mp_uart_t *drv, int request, ...); 
+static inline int mp_uart_config(mp_uart_t *drv,
+                                 mp_uart_baudrate_t baudrate,
+                                 mp_uart_databits_t databit,
+                                 mp_uart_parity_t parity,
+                                 mp_uart_stopbit_t stopbit)
+{
+    int ret = -1;
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)                  \
+        else if (drv == instance)                                      \
+        {                                                              \
+            ret = mp_##driver##_uart_config(instance, baudrate, databit,  \
+                                        parity, stopbit);              \
+        }
+    
+    if(0){}
+    MP_DRIVER_TABLE
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)
+    
+    return ret;
+}
+
+static inline int mp_uart_write(mp_uart_t *drv, const void *buf, size_t nbyte)
+{
+    int ret = -1;
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)                  \
+        else if (drv == instance)                                      \
+        {                                                              \
+            ret = mp_##driver##_uart_write(instance, buf, nbyte);        \
+        }
+    
+    if(0){}
+    MP_DRIVER_TABLE
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)
+    
+    return ret;
+}
+
+static inline int mp_uart_read(mp_uart_t *drv, void *buf, size_t nbyte)
+{
+    int ret = -1;
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)                  \
+        else if (drv == instance)                                      \
+        {                                                              \
+            ret = mp_##driver##_uart_read(instance, buf, nbyte);       \
+        }
+    
+    if(0){}
+    MP_DRIVER_TABLE
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)
+    
+    return ret;
+}
+
+static inline int mp_uart_ctl(mp_uart_t *drv, int request, ...)
+{
+    int ret = -1;
+    va_list ap;
+    va_start(ap, request);
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)                  \
+        else if (drv == instance)                                      \
+        {                                                              \
+            ret = mp_##driver##_uart_ctl(instance, request, ap);       \
+        }
+    
+    if(0){}
+    MP_DRIVER_TABLE
+    
+    #undef MP_DRV_UART
+    #define MP_DRV_UART(instance, driver, peripheral)
+    
+    va_end(ap);
+    return ret;
+}
+
+
+// A supprimé
+static inline int mp_uart_printf(mp_uart_t *drv, const char *format, ...)
+{
+    int ret = -1;
+    va_list ap;
+    char tmpStr[32];
+    
+    va_start(ap, format);
+    //int n = vsnprintf(tmpStr, sizeof(tmpStr), format, ap);
+    int n = vsnprintf(tmpStr, sizeof(tmpStr), format, ap);
+    va_end(ap);
+    ret = mp_uart_write(drv, tmpStr, n);
+    
+    return ret;
+}
+
 
 #endif // MP_DRIVER_UART_H
