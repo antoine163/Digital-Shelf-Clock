@@ -41,10 +41,13 @@
  */
 #define MP_DRIVER_TABLE                                                \
     MP_DRV_UART(drv_uart1,  port,       USART2)                        \
-    MP_DRV_SPI(drv_spi1,    port,       SPI1)                          \
-    MP_DRV_ADC(drv_adc1,    port,       ADC1)                          \
-    MP_DRV_ADC(drv_adc2,    ads7822,    drv_spi1)
-    //MP_DRV_GPIO(    drv_gpio,   spiExGpio,  drv_spi1)
+    MP_DRV_SPI( drv_spi1,   port,       SPI1)                          \
+    MP_DRV_ADC( drv_adc1,   port,       ADC1)                          \
+    MP_DRV_ADC( drv_adc2,   ads7822,    drv_spi1)                      \
+    MP_DRV_GPIO(drv_gpio,   port,       NULL)
+    //MP_DRV_GPIO(drv_gpioex1, gpioex,     drv_spi1, GPIOEX1_IRQ) // le driver gpioEx via récupérer l'interruption externe (le numéro de pin et le port) via le mpHardMap.h ...
+    //MP_DRV_GPIO(drv_gpioex2, gpioex,     drv_spi1, GPIOEX2_IRQ) // le driver gpioEx via récupérer l'interruption externe (le numéro de pin et le port) via le mpHardMap.h ...
+    //MP_DRV_EXTI(    drv_exti,   port,  LL_EXTI_LINE_7)
 
     
 #endif // MP_DRIVER_TABLE_H

@@ -29,23 +29,27 @@
 #include "stm32g0xx_ll_gpio.h"
 
 // Defines ---------------------------------------------------------------------
-#define LED_GREEN_Port      GPIOA
-#define LED_GREEN_Pin       LL_GPIO_PIN_5
+//#define LED_GREEN_Port      GPIOA
+//#define LED_GREEN_Pin       LL_GPIO_PIN_5
+//#define BP1_Port            GPIOC
+//#define BP1_Pin             LL_GPIO_PIN_13
+//#define BP2_Port            GPIOB
+//#define BP2_Pin             LL_GPIO_PIN_7
 
 // Static functions ------------------------------------------------------------
-static inline void boardLedGreenToggle()
-{
-    LL_GPIO_TogglePin(LED_GREEN_Port, LED_GREEN_Pin);
-}
+//static inline void boardLedGreenToggle()
+//{
+    //LL_GPIO_TogglePin(LED_GREEN_Port, LED_GREEN_Pin);
+//}
 
-static inline void boardLedGreenOn()
-{
-    LL_GPIO_SetOutputPin(LED_GREEN_Port, LED_GREEN_Pin);
-}
+//static inline void boardLedGreenOn()
+//{
+    //LL_GPIO_SetOutputPin(LED_GREEN_Port, LED_GREEN_Pin);
+//}
 
-static inline void boardLedGreenOff()
-{
-    LL_GPIO_ResetOutputPin(LED_GREEN_Port, LED_GREEN_Pin);
-}
+//static inline void boardLedGreenOff()
+//{
+    //LL_GPIO_ResetOutputPin(LED_GREEN_Port, LED_GREEN_Pin);
+//}
 
 #endif // NUCLEO_G071X_H

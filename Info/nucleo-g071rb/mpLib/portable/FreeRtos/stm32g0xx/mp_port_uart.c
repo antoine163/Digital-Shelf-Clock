@@ -30,32 +30,11 @@
 #include <stm32g0xx_ll_rcc.h>
 #include <stm32g0xx_ll_bus.h>
 #include <stm32g0xx_ll_gpio.h>
-#include <stm32g0xx_ll_usart.h>
-#include <stm32g0xx_ll_lpuart.h>
 
 // Std
 #include <string.h>
 
-
-
-/* USART2 instance is used. (TX on PA.02, RX on PA.03)
-   (please ensure that USART communication between the target MCU and ST-LINK MCU is properly enabled 
-    on HW board in order to support Virtual Com Port) */
-//#define USARTx_INSTANCE               USART2
-#define USARTx_CLK_ENABLE()           LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2)
-#define USARTx_CLK_SOURCE()           LL_RCC_SetUSARTClockSource(LL_RCC_USART2_CLKSOURCE_PCLK1)
-#define USARTx_IRQn                   USART2_IRQn
-//#define USARTx_IRQHandler             MP_USART2_IRQHandler
-
-#define USARTx_GPIO_CLK_ENABLE()      LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA)   /* Enable the peripheral clock of GPIOA */
-#define USARTx_TX_PIN                 LL_GPIO_PIN_2
-#define USARTx_TX_GPIO_PORT           GPIOA
-#define USARTx_SET_TX_GPIO_AF()       LL_GPIO_SetAFPin_0_7(GPIOA, LL_GPIO_PIN_2, LL_GPIO_AF_1)
-#define USARTx_RX_PIN                 LL_GPIO_PIN_3
-#define USARTx_RX_GPIO_PORT           GPIOA
-#define USARTx_SET_RX_GPIO_AF()       LL_GPIO_SetAFPin_0_7(GPIOA, LL_GPIO_PIN_3, LL_GPIO_AF_1)
-
-
+// Protected global variables --------------------------------------------------
 mp_port_uart_t *_mp_stm_usart1_drv = NULL;
 mp_port_uart_t *_mp_stm_usart2_drv = NULL;
 mp_port_uart_t *_mp_stm_usart3_drv = NULL;
@@ -66,15 +45,79 @@ mp_port_uart_t *_mp_stm_lpuart1_drv = NULL;
 mp_port_uart_t *_mp_stm_lpuart2_drv = NULL;
 
 // Implemented functions -------------------------------------------------------
+
+/**
+ * 
+ * Define of USART2 in mpHardMap.h file
+ * 
+ * - MP_USART2_TX_GPIO_Port
+ * - MP_USART2_TX_Pin
+ * - MP_USART2_TX_AF
+ * - MP_USART2_TX_SPEED
+ * - MP_USART2_TX_PULL
+ * - MP_USART2_TX_OUTPUT
+ * - MP_USART2_TX_PIN_LEVEL
+ * - 
+ * - MP_USART2_RX_GPIO_Port
+ * - MP_USART2_RX_Pin
+ * - MP_USART2_RX_AF
+ * - MP_USART2_RX_SPEED
+ * - MP_USART2_RX_PULL
+ * - MP_USART2_RX_OUTPUT
+ * - MP_USART2_RX_PIN_LEVEL
+ *
+ * - MP_USART2_CLKSOURCE
+ * - MP_USART2_TXRX_SWAPPED
+ * 
+ * Interrupt:
+ * - MP_USART1_IRQ_PRIORITY
+ * - MP_USART2_IRQ_PRIORITY
+ * - MP_USART3_IRQ_PRIORITY
+ * - MP_USART4_IRQ_PRIORITY
+ * - MP_USART5_IRQ_PRIORITY
+ * - MP_USART6_IRQ_PRIORITY
+ * 
+ * 
+ * 
+ * USART1_IRQHandler
+ * USART2_LPUART2_IRQHandler
+ * USART3_4_5_6_LPUART1_IRQHandler
+ * 
+ * 
+ * 
+ * - USART1_IRQHandler
+ * - USART2_IRQHandler
+ * - USART3_4_LPUART1_IRQHandler
+ * 
+ */
+
+/**
+ * @ingroup port_stm32g0x
+ * @brief Initialize a Uart peripteral
+ * 
+ * This function initialize the GPIO pins and the UART peripheral clock.
+ * 
+ * @warning The peripheral clock of GPIO Port used here (ex: Tx and Rx pin) must
+ * be enable before call this function.
+ * 
+ * @warning The IRQ used here (ex: USART2_IRQn) must be enable...
+ */
 int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev)
 {
     memset(drv, 0, sizeof(mp_port_uart_t));
     drv->dev = dev;
     
-    //USART2
+    // Init GPIO of USART2
     #if defined(MP_USART2_RX_GPIO_Port) || defined(MP_USART2_TX_GPIO_Port)
-    if(dev == USART2)
+    if (dev == USART2)
     {
+        //#ifdef MP_USART2_RX_GPIO_Port
+        //mp_gpio_config(drv_gpio, MP_USART2_RX)
+        //#endif
+        
+        //#ifdef MP_USART2_TX_GPIO_Port
+        //#endif
+        
         #ifdef MP_USART2_RX_GPIO_Port
             // Configure RX Pin as : Alternate function, High Speed, PushPull, Pull up.
             LL_GPIO_SetPinMode(         MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, LL_GPIO_MODE_ALTERNATE);
@@ -82,8 +125,7 @@ int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev)
                 LL_GPIO_SetAFPin_0_7(   MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_AF);
             else
                 LL_GPIO_SetAFPin_8_15(  MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_AF);
-            LL_GPIO_SetPinSpeed(        MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, LL_GPIO_SPEED_FREQ_HIGH);
-            LL_GPIO_SetPinOutputType(   MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_OUTPUT);
+            LL_GPIO_SetPinSpeed(        MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_SPEED);
             LL_GPIO_SetPinPull(         MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_PULL);
         #endif
         
@@ -94,27 +136,30 @@ int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev)
                 LL_GPIO_SetAFPin_0_7(   MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_AF);
             else
                 LL_GPIO_SetAFPin_8_15(  MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_AF);
-            LL_GPIO_SetPinSpeed(        MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, LL_GPIO_SPEED_FREQ_HIGH);
+            LL_GPIO_SetPinSpeed(        MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_SPEED);
             LL_GPIO_SetPinOutputType(   MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_OUTPUT);
             LL_GPIO_SetPinPull(         MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_PULL);
         #endif
 
         // Enable IRQ
-        //NVIC_SetPriority(USART2_IRQn, itGetPriorityFromIRQn(USART2_IRQn));  
+        //NVIC_SetPriority(USART2_IRQn, MP_USART2_IRQ_PRIORITY);
+        //NVIC_SetPriority(USART2_IRQn, MP_USART2_IRQ_PRIORITY);
         NVIC_EnableIRQ(USART2_IRQn);
+        
+        //mp_irq_enable(drv_irq, USART2);
         
         // Enable the USART2 peripheral clock and clock source.
         LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
         
         // Set USART2 clock source as PCLK1
-        LL_RCC_SetUSARTClockSource(LL_RCC_USART2_CLKSOURCE_PCLK1);
+        LL_RCC_SetUSARTClockSource(MP_USART2_CLKSOURCE);
         
         // Set Usart2 pointer.
         _mp_stm_usart2_drv = drv;
         
         #ifdef MP_USART2_RX_GPIO_Port
             // Enable RXNE and Error interrupts.
-            LL_USART_EnableIT_RXNE(USART2);
+            LL_USART_EnableIT_RXNE_RXFNE(USART2);
         #endif
         
         return 0;
@@ -136,12 +181,11 @@ int mp_port_uart_config(mp_port_uart_t *drv,
                         mp_uart_databits_t databit,
                         mp_uart_parity_t parity,
                         mp_uart_stopbit_t stopbit)
-{
+{  
     (void)baudrate;
     (void)databit;
     (void)parity;
     (void)stopbit;
-    
     
     /* (4) Configure USART functional parameters ********************************/
     
@@ -170,13 +214,13 @@ int mp_port_uart_config(mp_port_uart_t *drv,
     
         In this example, Peripheral Clock is expected to be equal to 56000000 Hz => equal to SystemCoreClock
     */
-    LL_USART_SetBaudRate(drv->dev, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_16, 115200); 
+    LL_USART_SetBaudRate(drv->dev, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_16, (uint32_t)baudrate); 
     
     /* (5) Enable USART *********************************************************/
     LL_USART_Enable(drv->dev);
     
     /* Polling USART initialisation */
-    while((!(LL_USART_IsActiveFlag_TEACK(drv->dev))) || (!(LL_USART_IsActiveFlag_REACK(drv->dev))))
+    while ((!(LL_USART_IsActiveFlag_TEACK(drv->dev))) || (!(LL_USART_IsActiveFlag_REACK(drv->dev))))
     { 
     }
     
@@ -217,54 +261,4 @@ int mp_port_uart_ctl(mp_port_uart_t *drv, int request, va_list ap)
     (void)ap;
     
     return 0;
-}
-
-static inline void _mp_port_uart_irq_handler(mp_port_uart_t *drv, USART_TypeDef *dev)
-{
-    if(LL_USART_IsEnabledIT_TXE(dev) && LL_USART_IsActiveFlag_TXE(dev))
-    {
-        /* TXE flag will be automatically cleared when writing new data in TDR register */
-    
-        /* Call function in charge of handling empty DR => will lead to transmission of next character */
-        //USART_TXEmpty_Callback();
-        
-        if(drv->iSend >= drv->lenSend -1)
-        {
-            /* Disable TXE interrupt */
-            LL_USART_DisableIT_TXE(dev);
-          
-            /* Enable TC interrupt */
-            LL_USART_EnableIT_TC(dev);
-        }
-
-        /* Fill TDR with a new char */
-        LL_USART_TransmitData8(dev, drv->txBuf[drv->iSend]);
-        drv->iSend++;
-    }
-    
-    if(LL_USART_IsEnabledIT_TC(dev) && LL_USART_IsActiveFlag_TC(dev))
-    {
-        /* Clear TC flag */
-        LL_USART_ClearFlag_TC(dev);
-        /* Call function in charge of handling end of transmission of sent character
-        and prepare next character transmission */
-        //USART_CharTransmitComplete_Callback();
-        
-        /* Disable TC interrupt */
-        LL_USART_DisableIT_TC(dev);
-    }
-    
-    if(LL_USART_IsEnabledIT_ERROR(dev) && LL_USART_IsActiveFlag_NE(dev))
-    {
-        /* Call Error function */
-        //Error_Callback();
-        
-        /* Disable USARTx_IRQn */
-        NVIC_DisableIRQ(USARTx_IRQn);
-    }
-}
-
-void USART2_IRQHandler()
-{
-    _mp_port_uart_irq_handler(_mp_stm_usart2_drv, USART2);
 }

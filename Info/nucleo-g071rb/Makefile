@@ -72,23 +72,23 @@ ASRC = app/startup_stm32g071xx.s
 # List C source files
 CSRC  = app/system_stm32g0xx.c
 CSRC += app/board/nucleo_g071x.c
-CSRC += app/it.c
 CSRC += app/main.c
 CSRC += app/tasks/task_test.c
 
 ## ST source files
 CSRC += drivers/stm32g0xx_hal_driver/Src/stm32g0xx_ll_utils.c
 
-## mp_lib source files
-CSRC += mp_lib/mp.c
-CSRC += mp_lib/portable/FreeRtos/stm32g0xx/mp_port_uart.c
-CSRC += mp_lib/portable/FreeRtos/stm32g0xx/mp_port_adc.c
-CSRC += mp_lib/portable/FreeRtos/stm32g0xx/mp_port_spi.c
+## mpLib source files
+CSRC += mpLib/mp.c
+CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_port_gpio.c
+#CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_port_uart.c
+#CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_port_adc.c
+#CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_port_spi.c
 
 ## FreeRTOS source files
-CSRC += middlewares/FreeRTOS-Kernel/tasks.c
-CSRC += middlewares/FreeRTOS-Kernel/list.c
-CSRC += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c
+#CSRC += middlewares/FreeRTOS-Kernel/tasks.c
+#CSRC += middlewares/FreeRTOS-Kernel/list.c
+#CSRC += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c
 
 # List of directories to include
 UINCDIR  = app
@@ -97,8 +97,8 @@ UINCDIR += drivers/CMSIS_5/CMSIS/Core/Include/
 UINCDIR += drivers/stm32g0xx_hal_driver/Inc/
 UINCDIR += middlewares/FreeRTOS-Kernel/include/
 UINCDIR += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/
-UINCDIR += mp_lib/include/
-UINCDIR += mp_lib/portable/FreeRtos/stm32g0xx/
+UINCDIR += mpLib/include/
+UINCDIR += mpLib/portable/FreeRtos/stm32g0xx/
 
 # List of user define
 UDEFS  = STM32G071xx
@@ -241,7 +241,7 @@ gdb:debug
 	
 # Run cgdb/openocd for load and debug with color.
 stflash:bin
-	st-flash write $(TARGET).bin 0x8000000
+	st-flash --connect-under-reset write $(TARGET).bin 0x8000000
 	
 # Run cgdb/openocd for load and debug with color.
 cgdb:debug

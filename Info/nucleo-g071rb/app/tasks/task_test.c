@@ -31,10 +31,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-//Driver from mp library
+//Driver from mpLib
 #include "mp/drivers/uart.h"
 #include "mp/drivers/adc.h"
 #include "mp/drivers/spi.h"
+#include "mp/drivers/gpio.h"
 
 //std
 #include <string.h>
@@ -43,37 +44,78 @@
 
 // Implemented functions -------------------------------------------------------
 
+
+#include "stm32g0xx_ll_utils.h"
+#include "stm32g0xx_ll_exti.h"
+volatile int cpt2=0;
+
+void testBpIt()
+{
+    cpt2++;
+}
+
 void task_test( void* pvParameters )
 {
     (void)pvParameters;
     
-    // Init UART1
-    mp_uart_init(drv_uart1);
-    mp_uart_config(drv_uart1, MP_UART_BAUDRATE_115200,
-                            MP_UART_DATA_8BITS,
-                            MP_UART_PARITY_NO,
-                            MP_UART_STOPBIT_1);
+    // Init gpios
+    mp_gpio_init(drv_gpio);
     
-    // Init ADC1
-    mp_adc_init(drv_adc1);
+    //// Init UART1
+    //mp_uart_init(drv_uart1);
+    //mp_uart_config(drv_uart1, MP_UART_BAUDRATE_115200,
+                            //MP_UART_DATA_8BITS,
+                            //MP_UART_PARITY_NO,
+                            //MP_UART_STOPBIT_1);
     
-    // Init SPI1 to Init ads7822 (adc2)
-    mp_spi_init(drv_spi1);
-    mp_adc_init(drv_adc2);
+    //// Init ADC1
+    //mp_adc_init(drv_adc1);
+    
+    //// Init SPI1 to Init ads7822 (adc2)
+    //mp_spi_init(drv_spi1);
+    //mp_adc_init(drv_adc2);
+
+
+
+    
+    
+    //mp_gpio_set_output(LED_GREEN,    MP_GPIO_TYPE_PUSH_PULL, MP_GPIO_PULL_NO,    0);
+    //mp_gpio_set_input(BP1, MP_GPIO_PULL_NO);
+    //mp_gpio_set_input(BP2, MP_GPIO_PULL_UP);
+    
+    
+    
+    //mp_gpio_set_output(PIN_LED_RED,    MP_GPIO_TYPE_PUSH_PULL, MP_GPIO_PULL_NO,    1);
+    //mp_gpio_set_output(PIN_LED_GREEN,  MP_GPIO_TYPE_PUSH_PULL, MP_GPIO_PULL_NO,    1);
+    //mp_gpio_set_output(PIN_LED_YELLOW, MP_GPIO_TYPE_PUSH_PULL, MP_GPIO_PULL_NO,    1);
+    
+    //mp_gpio_set_input(PIN_BP_LED, MP_GPIO_PULL_UP);
+    
+    
     
     
     int cpt = 0;
     while(1)
     {
-        vTaskDelay(450 / portTICK_PERIOD_MS);
-        //mp_gpio_set(drv_gpio, LED_GREEN | LED_RED);
-        boardLedGreenOn();
-        vTaskDelay(50 / portTICK_PERIOD_MS);
-        //mp_gpio_reset(drv_gpio, LED_GREEN);
-        boardLedGreenOff();
+        //vTaskDelay(450 / portTICK_PERIOD_MS);
+        LL_mDelay(450);
+        mp_gpio_set(PIN_LED_GREEN);
+        mp_gpio_toggle(PIN_LED_YELLOW);
+        mp_gpio_set(LED_GREEN);
         
-        mp_uart_printf(drv_uart1, "Hello:%u\r\n", cpt);
+        //vTaskDelay(50 / portTICK_PERIOD_MS);
+        LL_mDelay(50);
+        mp_gpio_reset(PIN_LED_GREEN);
+        mp_gpio_toggle(PIN_LED_YELLOW);
+        mp_gpio_reset(LED_GREEN);
+        
+        //mp_uart_printf(drv_uart1, "Hello:%u:%u\r\n", cpt, cpt2);
         cpt++;
+        
+        
+        unsigned int val = mp_gpio_get_value(PIN_BP_LED);
+        mp_gpio_set_value(PIN_LED_RED, val);
+        
         
         //mp_adc_get_volatag(&drv_adc1, 0);
         //mp_adc_get_volatag(&drv_adc1, 4);
@@ -83,29 +125,16 @@ void task_test( void* pvParameters )
     }
 }
 
-//void task_test( void* pvParameters )
-//{
-    //(void)pvParameters;
-    
-    //mp_uart_t uartLog;
-    ////mp_uart_t uartLog2;
-    //mp_uart_init(&uartLog, USART2);
-    ////mp_uart_init(&uartLog2, USART_VIA_I2C);
-    ////mp_uart_init(&uartLog, "/dev/ttyUSB0");
-    
-    //mp_uart_config(&uartLog,  MP_UART_BAUDRATE_115200,
-                                    //MP_UART_DATA_8BITS,
-                                    //MP_UART_PARITY_NO,
-                                    //MP_UART_STOPBIT_1);
-    
-    //char myStr[64];
-    
-    //while(1)
-    //{
-        //vTaskDelay(500 / portTICK_PERIOD_MS);
-        //boardLedGreenToggle();
-        
-        //snprintf(myStr, sizeof(myStr), "Hello Uart!\n");
-        //mp_uart_write(&uartLog, myStr, strlen(myStr));
-    //}
-//}
+void bp1Handler()
+{
+    cpt2++;
+}
+
+void bp2Handler()
+{
+    cpt2--;
+}
+
+
+
+

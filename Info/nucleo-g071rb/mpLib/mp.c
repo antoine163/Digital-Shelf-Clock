@@ -53,6 +53,11 @@
 // Global variables ------------------------------------------------------------
 #include "mp_def_empty_drv.h"
 
+#undef MP_DRV_GPIO
+#define MP_DRV_GPIO(instance, driver, peripheral)                      \
+    static mp_##driver##_gpio_t _##instance;                           \
+    mp_gpio_t *instance = (mp_gpio_t*)&_##instance;
+
 #undef MP_DRV_UART
 #define MP_DRV_UART(instance, driver, peripheral)                      \
     static mp_##driver##_uart_t _##instance;                           \

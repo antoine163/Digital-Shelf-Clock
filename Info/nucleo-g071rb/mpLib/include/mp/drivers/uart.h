@@ -36,21 +36,25 @@ typedef void mp_uart_t;
 // Enum ------------------------------------------------------------------------
 typedef enum
 {
-    MP_UART_BAUDRATE_1200    = 1200,    //!< 1200 bps.
-    MP_UART_BAUDRATE_2400    = 2400,    //!< 2400 bps.
-    MP_UART_BAUDRATE_4800    = 4800,    //!< 4800 bps.
-    MP_UART_BAUDRATE_9600    = 9600,    //!< 9600 bps.
-    MP_UART_BAUDRATE_19200   = 19200,   //!< 19200 bps.
-    MP_UART_BAUDRATE_38400   = 38400,   //!< 38400 bps.
-    MP_UART_BAUDRATE_57600   = 57600,   //!< 57600 bps.
-    MP_UART_BAUDRATE_115200  = 115200,  //!< 115200 bps.
-    MP_UART_BAUDRATE_230400  = 230400   //!< 230400 bps.
+    MP_UART_BAUDRATE_300    = 600,      //!< 600 bps.
+    MP_UART_BAUDRATE_1200   = 1200,     //!< 1200 bps.
+    MP_UART_BAUDRATE_2400   = 2400,     //!< 2400 bps.
+    MP_UART_BAUDRATE_4800   = 4800,     //!< 4800 bps.
+    MP_UART_BAUDRATE_9600   = 9600,     //!< 9600 bps.
+    MP_UART_BAUDRATE_19200  = 19200,    //!< 19200 bps.
+    MP_UART_BAUDRATE_38400  = 38400,    //!< 38400 bps.
+    MP_UART_BAUDRATE_57600  = 57600,    //!< 57600 bps.
+    MP_UART_BAUDRATE_115200 = 115200,   //!< 115200 bps.
+    MP_UART_BAUDRATE_230400 = 230400    //!< 230400 bps.
 }mp_uart_baudrate_t;
 
 typedef enum
 {
+    MP_UART_DATA_5BITS = 5, //!< data of 5 bits.
+    MP_UART_DATA_6BITS = 6, //!< data of 6 bits.
     MP_UART_DATA_7BITS = 7, //!< data of 7 bits.
-    MP_UART_DATA_8BITS = 8  //!< data of 8 bits.
+    MP_UART_DATA_8BITS = 8, //!< data of 8 bits.
+    MP_UART_DATA_9BITS = 9  //!< data of 9 bits.
 }mp_uart_databits_t;
 
 typedef enum
@@ -62,8 +66,10 @@ typedef enum
 
 typedef enum
 {
-    MP_UART_STOPBIT_1 = 1,  //!< 1 stop bit.
-    MP_UART_STOPBIT_2 = 2   //!< 2 stop bit.
+    MP_UART_STOPBIT_0_5 = 0,    //!< 0.5 stop bit.
+    MP_UART_STOPBIT_1   = 1,    //!< 1 stop bit.
+    MP_UART_STOPBIT_1_5 = 2,    //!< 1.5 stop bit.
+    MP_UART_STOPBIT_2   = 3     //!< 2 stop bit.
 }mp_uart_stopbit_t;
 
 // Include ---------------------------------------------------------------------

@@ -22,25 +22,28 @@
  * SOFTWARE.
  */
  
-/**
- * @file This file define the macros @p MP_DRV_UART*** to empty.
- * 
- * It used to auto implement driver interface file like "mp/drivers/uart.h" and
- * it is include at etch time it necessarian. Moreover, it shouldn't be include
- * in application files.
- * 
- * @note This file must not be protected against multiple inclusions.
+ /**
+ * @file This file has role to include all drivers and devices.
  */
+ 
+#ifndef MP_H
+#define MP_H
 
-// Defines ---------------------------------------------------------------------
+// Include ---------------------------------------------------------------------
 
-// undef all MP_DRV_***
-#undef MP_DRV_UART
-#undef MP_DRV_ADC
-#undef MP_DRV_SPI
+// Include all drivers
+#include "mp/drivers/uart.h"
+#include "mp/drivers/adc.h"
+#include "mp/drivers/spi.h"
+#include "mp/drivers/gpio.h"
 
-// define all MP_DRV_*** to empty
-#define MP_DRV_UART(instance, driver, peripheral)
-#define MP_DRV_ADC(instance, driver, peripheral)
-#define MP_DRV_SPI(instance, driver, peripheral)
+// Include all devices
+//...
+
+// Define ----------------------------------------------------------------------
+//#define MP_LIB_VERSION  "0.0.1"
+//#define MP_LIB_VERSION_MAJOR          0
+//#define MP_LIB_VERSION_MINOR          0
+
+#endif // MP_H
 

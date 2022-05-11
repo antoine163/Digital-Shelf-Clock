@@ -22,34 +22,21 @@
  * SOFTWARE.
  */
 
-#ifndef MP_FREERTOS_STM32G0XX_UART_H
-#define MP_FREERTOS_STM32G0XX_UART_H
-
 // Include ---------------------------------------------------------------------
-#include <stm32g0xx.h>
-// No necessary to include "mp/drivers/uart.h" here. It is "mp/drivers/uart.h"
-// which include "mp_port_uart.h" after to have declare enum, strucur, typdef, ...
-// like mp_uart_baudrate_t, mp_uart_databits_t, mp_uart_stopbit_t ...
+#include "mp/drivers/gpio.h"
 
-// Structure -------------------------------------------------------------------
-typedef struct
+// Implemented functions -------------------------------------------------------
+int mp_port_gpio_init(mp_port_gpio_t *drv, void *unused)
 {
-    USART_TypeDef* dev;
-    char txBuf[64];
-    unsigned int lenSend;
-    unsigned int iSend;
-}mp_port_uart_t;
+    (void)drv;
+    (void)unused;
+    _mp_port_gpio_init_table(drv);
+    return 0;
+}
 
-// Prototype functions ---------------------------------------------------------
-int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev);
-int mp_port_uart_deinit(mp_port_uart_t *drv);
-int mp_port_uart_config(mp_port_uart_t *drv,
-                        mp_uart_baudrate_t baudrate,
-                        mp_uart_databits_t databit,
-                        mp_uart_parity_t parity,
-                        mp_uart_stopbit_t stopbit);
-int mp_port_uart_write(mp_port_uart_t *drv, const void *buf, size_t nbyte);
-int mp_port_uart_read(mp_port_uart_t *drv, void *buf, size_t nbyte);
-int mp_port_uart_ctl(mp_port_uart_t *drv, int request, va_list ap);
-
-#endif // MP_FREERTOS_STM32G0XX_UART_H
+int mp_port_gpio_deinit(mp_port_gpio_t *drv)
+{
+    (void)drv;
+    _mp_port_gpio_deinit_table(drv);
+    return 0;
+}
