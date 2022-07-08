@@ -26,17 +26,29 @@
 #include "mp/drivers/gpio.h"
 
 // Implemented functions -------------------------------------------------------
-int mp_port_gpio_init(mp_port_gpio_t *drv, void *unused)
+int mp_port_gpio_init(mp_port_gpio_t * dev, GPIO_TypeDef * pripheral)
 {
-    (void)drv;
-    (void)unused;
-    _mp_port_gpio_init_table(drv);
+    dev->gpiox = pripheral;
+    _mp_gpio_init_table(dev);
     return 0;
 }
 
-int mp_port_gpio_deinit(mp_port_gpio_t *drv)
+int mp_port_gpio_deinit(mp_port_gpio_t * dev)
 {
-    (void)drv;
-    _mp_port_gpio_deinit_table(drv);
+    _mp_gpio_deinit_table(dev);
     return 0;
+}
+
+int mp_port_gpio_set_value(mp_port_gpio_t * dev,    unsigned int pinmask,
+                                                    int value)
+{
+    uint32_t bsrr = pinmask<<16; // Reset pinmask
+    bsrr |= value?pinmask:0x00000; // Set pinmask
+    WRITE_REG(dev->gpiox->BSRR, bsrr);
+    return 0;
+}
+
+int mp_port_gpio_get_value(mp_port_gpio_t * dev, unsigned int pinmask)
+{
+    return (int)LL_GPIO_IsInputPinSet(dev->gpiox, (uint32_t)pinmask);
 }

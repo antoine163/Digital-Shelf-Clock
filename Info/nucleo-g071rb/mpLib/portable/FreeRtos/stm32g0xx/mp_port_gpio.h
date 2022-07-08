@@ -32,27 +32,27 @@
 
 #include "stm32g0xx_ll_gpio.h"
 
-// Define macro ------------------------------------------------------------
-#define MP_GPIO_PORT(drv, port, pin) drv,                            /* drv  */\
-                                     (unsigned int)GPIO##port,       /* port */\
-                                     (unsigned int)LL_GPIO_PIN_##pin /* pin  */
-
 // Structure -------------------------------------------------------------------
 typedef struct
 {
-    int empty;
+    GPIO_TypeDef * gpiox;
 }mp_port_gpio_t;
 
 // Prototype functions ---------------------------------------------------------
-int mp_port_gpio_init(mp_port_gpio_t *drv, void *unused);
-int mp_port_gpio_deinit(mp_port_gpio_t *drv);
+int mp_port_gpio_init(mp_port_gpio_t * dev, GPIO_TypeDef * pripheral);
+int mp_port_gpio_deinit(mp_port_gpio_t * dev);
+int mp_port_gpio_set_value(mp_port_gpio_t * dev,    unsigned int pinmask,
+                                                    int value);
+int mp_port_gpio_get_value( mp_port_gpio_t * dev,    unsigned int pinmask);
 
-static inline int mp_port_gpio_set_output(mp_port_gpio_t *drv, unsigned int port, unsigned int pin, 
-                                                        mp_gpio_type_t type, 
-                                                        mp_gpio_pull_t pull, 
-                                                        unsigned int value)
+// Static inline functions -----------------------------------------------------
+static inline int mp_port_gpio_set_output(  mp_port_gpio_t * dev,
+                                            unsigned int pinmask,
+                                            mp_gpio_type_t type, 
+                                            mp_gpio_pull_t pull, 
+                                            int value)
 {
-    (void)drv;
+    GPIO_TypeDef * gpiox = dev->gpiox;
     uint32_t ll_type;
     uint32_t ll_pull;
     
@@ -72,21 +72,64 @@ static inline int mp_port_gpio_set_output(mp_port_gpio_t *drv, unsigned int port
     }
     
     if (value == 0)
-        LL_GPIO_ResetOutputPin((GPIO_TypeDef*)port, pin);
-    else
-        LL_GPIO_SetOutputPin((GPIO_TypeDef*)port, pin);
+        LL_GPIO_ResetOutputPin(gpiox, pinmask);
+    else 
+        LL_GPIO_SetOutputPin(gpiox, pinmask);
+        //mp_port_gpio_set_value(dev, port, pinmask, value);
+        //...
+    asm("nop");
+    asm("nop");
+    //uint32_t bsrr = pinmask<<16; // Reset pinmask
+    //bsrr |= _mp_port_gpio_value_to_mask(pinmask, value); // Set pinmask
+    //WRITE_REG(gpiox->BSRR, bsrr);
+    asm("nop");
     
-    LL_GPIO_SetPinOutputType((GPIO_TypeDef*)port, pin, ll_type);
-    LL_GPIO_SetPinPull((GPIO_TypeDef*)port, pin, ll_pull);
-    LL_GPIO_SetPinMode((GPIO_TypeDef*)port, pin, LL_GPIO_MODE_OUTPUT);
+    LL_GPIO_SetPinOutputType(gpiox, pinmask, ll_type);
+    
+    // Prepare pupdr and moder registers mask and values.
+    uint32_t regsmask = 0;
+    uint32_t pupdr = 0;
+    uint32_t moder = 0;
+    uint32_t shift;
+
+    #define _MP_GPIO_PINMASK_SET_PULL_AND_MODE(pin)                    \
+        if ( pinmask&LL_GPIO_PIN_##pin )                               \
+        {                                                              \
+            shift = (2*pin);                                           \
+            regsmask |= 0x3 << shift;                                  \
+            pupdr |= ll_pull << shift;                                 \
+            moder |= LL_GPIO_MODE_OUTPUT << shift;                     \
+        }
+    
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(0);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(1);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(2);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(3);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(4);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(5);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(6);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(7);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(8);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(9);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(10);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(11);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(12);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(13);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(14);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(15);
+    #undef _MP_GPIO_PINMASK_SET_PULL_AND_MODE
+    
+    // Set values to pupdr and moder registers
+    MODIFY_REG(gpiox->PUPDR, regsmask, pupdr);
+    MODIFY_REG(gpiox->MODER, regsmask, moder);
     
     return 0;
 }
 
-static inline int mp_port_gpio_set_input(mp_port_gpio_t *drv, unsigned int port, unsigned int pin,
-                                             mp_gpio_pull_t pull)
+static inline int mp_port_gpio_set_input(   mp_port_gpio_t * dev,
+                                            unsigned int pinmask,
+                                            mp_gpio_pull_t pull)
 {
-    (void)drv;
     uint32_t ll_pull;
     
     switch (pull)
@@ -97,71 +140,125 @@ static inline int mp_port_gpio_set_input(mp_port_gpio_t *drv, unsigned int port,
         default: return -1; // Todo: définir un code d'erreur
     }
     
-    LL_GPIO_SetPinPull((GPIO_TypeDef*)port, pin, ll_pull);
-    LL_GPIO_SetPinMode((GPIO_TypeDef*)port, pin, LL_GPIO_MODE_INPUT);
+    // Prepare pupdr and moder registers mask and values.
+    uint32_t regsmask = 0;
+    uint32_t pupdr = 0;
+    uint32_t moder = 0;
+    uint32_t shift;
+
+    #define _MP_GPIO_PINMASK_SET_PULL_AND_MODE(pin)                    \
+        if ( pinmask&LL_GPIO_PIN_##pin )                               \
+        {                                                              \
+            shift = (2*pin);                                           \
+            regsmask |= 0x3 << shift;                                  \
+            pupdr |= ll_pull << shift;                                 \
+            moder |= LL_GPIO_MODE_INPUT << shift;                      \
+        }
+    
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(0);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(1);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(2);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(3);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(4);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(5);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(6);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(7);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(8);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(9);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(10);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(11);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(12);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(13);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(14);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(15);
+    #undef _MP_GPIO_PINMASK_SET_PULL_AND_MODE
+    
+    // Set values to pupdr and moder registers
+    GPIO_TypeDef * gpiox = dev->gpiox;
+    MODIFY_REG(gpiox->PUPDR, regsmask, pupdr);
+    MODIFY_REG(gpiox->MODER, regsmask, moder);
     
     return 0;
 }
 
-static inline int mp_port_gpio_set_default(mp_port_gpio_t *drv, unsigned int port, unsigned int pin)
+static inline int mp_port_gpio_set_default( mp_port_gpio_t * dev,
+                                            unsigned int pinmask)
 {
-    (void)drv;
-    LL_GPIO_SetPinPull((GPIO_TypeDef*)port, pin, LL_GPIO_PULL_NO);
-    LL_GPIO_SetPinMode((GPIO_TypeDef*)port, pin, LL_GPIO_MODE_ANALOG);
+    // Prepare pupdr and moder registers mask and values.
+    uint32_t regsmask = 0;
+    uint32_t pupdr = 0;
+    uint32_t moder = 0;
+    uint32_t shift;
+
+    #define _MP_GPIO_PINMASK_SET_PULL_AND_MODE(pin)                    \
+        if ( pinmask&LL_GPIO_PIN_##pin )                               \
+        {                                                              \
+            shift = (2*pin);                                           \
+            regsmask |= 0x3 << shift;                                  \
+            pupdr |= LL_GPIO_PULL_NO << shift;                         \
+            moder |= LL_GPIO_MODE_ANALOG << shift;                     \
+        }
+    
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(0);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(1);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(2);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(3);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(4);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(5);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(6);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(7);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(8);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(9);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(10);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(11);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(12);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(13);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(14);
+    _MP_GPIO_PINMASK_SET_PULL_AND_MODE(15);
+    #undef _MP_GPIO_PINMASK_SET_PULL_AND_MODE
+    
+    // Set values to pupdr and moder registers
+    GPIO_TypeDef *gpiox = dev->gpiox;
+    MODIFY_REG(gpiox->PUPDR, regsmask, pupdr);
+    MODIFY_REG(gpiox->MODER, regsmask, moder);
+    
     return 0;
 }
 
-static inline int mp_port_gpio_ctl(mp_port_gpio_t *drv, unsigned int port, unsigned int pin,
-                                              int request, va_list ap)
+static inline int mp_port_gpio_ctl( mp_port_gpio_t * dev,
+                                    unsigned int pinmask,
+                                    int request,
+                                    va_list ap)
 {
-    (void)drv;
-    (void)port;
-    (void)pin;
+    (void)dev;
+    (void)pinmask;
     (void)request;
     (void)ap;
     
     return -1;
 }
 
-static inline int mp_port_gpio_reset(mp_port_gpio_t *drv, unsigned int port, unsigned int pin)
+static inline int mp_port_gpio_reset(   mp_port_gpio_t * dev,
+                                        unsigned int pinmask)
 {
-    (void)drv;
-    LL_GPIO_ResetOutputPin((GPIO_TypeDef*)port, pin);
+    LL_GPIO_ResetOutputPin(dev->gpiox, pinmask);
     return 0;
 }
 
-static inline int mp_port_gpio_set(mp_port_gpio_t *drv, unsigned int port, unsigned int pin)
+static inline int mp_port_gpio_set( mp_port_gpio_t * dev, 
+                                    unsigned int pinmask)
 {
-    (void)drv;
-    LL_GPIO_SetOutputPin((GPIO_TypeDef*)port, pin);
+    (void)dev;
+    LL_GPIO_SetOutputPin(dev->gpiox, pinmask);
     return 0;
 }
 
-static inline int mp_port_gpio_toggle(mp_port_gpio_t *drv, unsigned int port, unsigned int pin)
+static inline int mp_port_gpio_toggle(  mp_port_gpio_t * dev,
+                                        unsigned int pinmask)
 {
-    (void)drv;
-    LL_GPIO_TogglePin((GPIO_TypeDef*)port, pin);
+    (void)dev;
+    LL_GPIO_TogglePin(dev->gpiox, pinmask);
     return 0;
-}
-
-static inline int mp_port_gpio_set_value(mp_port_gpio_t *drv, unsigned int port, unsigned int pin,
-                                                                unsigned int value)
-{
-    (void)drv;
-    
-    GPIO_TypeDef *st_gpiox = (GPIO_TypeDef*)port;
-    uint32_t bsrr = pin<<16; // Reset pin
-    bsrr |= pin * value; // Set pin
-    
-    st_gpiox->BSRR = bsrr;
-    
-    return 0;
-}
-
-static inline int mp_port_gpio_get_value(mp_port_gpio_t *drv, unsigned int port, unsigned int pin)
-{
-    (void)drv;
-    return (int)LL_GPIO_IsInputPinSet((GPIO_TypeDef*)port, (uint32_t)pin);
 }
 
 #endif // MP_FREERTOS_STM32G0XX_ADC_H

@@ -57,31 +57,21 @@ void boardInit()
     
     // Enable clock for all gpio
     LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_ALL);
-    //LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
-    //LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
-    //LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
-    //LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOD);
     
-    /* Configure IO */
-    //LL_GPIO_SetPinMode(BP1_Port, BP1_Pin, LL_GPIO_MODE_INPUT);
-    //LL_GPIO_SetPinPull(BP1_Port, BP1_Pin, LL_GPIO_PULL_NO); 
-    //LL_GPIO_SetPinMode(BP2_Port, BP2_Pin, LL_GPIO_MODE_INPUT);
-    //LL_GPIO_SetPinPull(BP2_Port, BP2_Pin, LL_GPIO_PULL_UP); 
+    ///* -2- Connect External Line to the GPIO*/
+    //LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTC, LL_EXTI_CONFIG_LINE13);
+    //LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTB, LL_EXTI_CONFIG_LINE7);
     
-    /* -2- Connect External Line to the GPIO*/
-    LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTC, LL_EXTI_CONFIG_LINE13);
-    LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTB, LL_EXTI_CONFIG_LINE7);
+    ///*-3- Enable a falling trigger EXTI line 13 Interrupt */
+    //LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_13);
+    //LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_13);
+    ///*-3- Enable a falling trigger EXTI line 7 Interrupt */
+    //LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_7);
+    //LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_7);
     
-    /*-3- Enable a falling trigger EXTI line 13 Interrupt */
-    LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_13);
-    LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_13);
-    /*-3- Enable a falling trigger EXTI line 7 Interrupt */
-    LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_7);
-    LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_7);
-    
-    /*-4- Configure NVIC for EXTI4_15_IRQn */
-    NVIC_EnableIRQ(EXTI4_15_IRQn); 
-    NVIC_SetPriority(EXTI4_15_IRQn, 0);
+    ///*-4- Configure NVIC for EXTI4_15_IRQn */
+    //NVIC_EnableIRQ(EXTI4_15_IRQn); 
+    //NVIC_SetPriority(EXTI4_15_IRQn, 0);
 }
 
 /**

@@ -27,54 +27,56 @@
  * 
  * For example, for a * MP_DRIVER_TABLE below :
  * @code
- * #define MP_DRIVER_TABLE                                              \
- *     MP_DRV_ADC(drv_adc1,    port,       ADC1)                        \
- *     MP_DRV_SPI(drv_spi1,    port,       SPI1)                        \
- *     MP_DRV_ADC(drv_adc2,    ads7822,    drv_spi1)
+ * #define MP_DEVICES_TABLE                                             \
+ *     MP_DEV_ADC(dev_adc1,    port,       ADC1)                        \
+ *     MP_DEV_SPI(dev_spi1,    port,       SPI1)                        \
+ *     MP_DEV_ADC(dev_adc2,    ads7822,    drv_spi1)
  * @endcode
  * 
  * The result give :
  * @code
- * static mp_port_spi_t _drv_spi1;
- * mp_spi_t *drv_spi1 = (mp_spi_t*)&_drv_spi1;
+ * static mp_port_spi_t _dev_spi1;
+ * mp_spi_t *dev_spi1 = (mp_spi_t*)&_dev_spi1;
  *
- * static mp_port_adc_t _drv_adc1;
- * mp_adc_t *drv_adc1 = (mp_adc_t*)&_drv_adc1;
+ * static mp_port_adc_t _dev_adc1;
+ * mp_adc_t *dev_adc1 = (mp_adc_t*)&_dev_adc1;
  *
- * static mp_ads7822_adc_t _drv_adc2;
- * mp_adc_t *drv_adc2 = (mp_adc_t*)&_drv_adc2;
+ * static mp_ads7822_adc_t _dev_adc2;
+ * mp_adc_t *dev_adc2 = (mp_adc_t*)&_dev_adc2;
  * @endcode
  */
  
 // Include ---------------------------------------------------------------------
 #include "mp.h"
-#include "mpDriversTable.h"
+#include "mpDevicesTable.h"
 
 // Global variables ------------------------------------------------------------
-#include "mp_def_empty_drv.h"
 
-#undef MP_DRV_GPIO
-#define MP_DRV_GPIO(instance, driver, peripheral)                      \
-    static mp_##driver##_gpio_t _##instance;                           \
-    mp_gpio_t *instance = (mp_gpio_t*)&_##instance;
+// Define all device macro to build instances
+#undef MP_DEV_GPIO
+#define MP_DEV_GPIO(device, driver, peripheral)                        \
+    static mp_##driver##_gpio_t _##device;                             \
+    mp_gpio_t *device = (mp_gpio_t*)&_##device;
 
-#undef MP_DRV_UART
-#define MP_DRV_UART(instance, driver, peripheral)                      \
-    static mp_##driver##_uart_t _##instance;                           \
-    mp_uart_t *instance = (mp_uart_t*)&_##instance;
+#undef MP_DEV_UART
+#define MP_DEV_UART(device, driver, peripheral)                        \
+    static mp_##driver##_uart_t _##device;                             \
+    mp_uart_t *device = (mp_uart_t*)&_##device;
 
-#undef MP_DRV_ADC
-#define MP_DRV_ADC(instance, driver, peripheral)                       \
-    static mp_##driver##_adc_t _##instance;                            \
-    mp_adc_t *instance = (mp_adc_t*)&_##instance;
+#undef MP_DEV_ADC
+#define MP_DEV_ADC(device, driver, peripheral)                         \
+    static mp_##driver##_adc_t _##device;                              \
+    mp_adc_t *device = (mp_adc_t*)&_##device;
 
-#undef MP_DRV_SPI
-#define MP_DRV_SPI(instance, driver, peripheral)                       \
-    static mp_##driver##_spi_t _##instance;                            \
-    mp_spi_t *instance = (mp_spi_t*)&_##instance;
-    
-MP_DRIVER_TABLE
+#undef MP_DEV_SPI
+#define MP_DEV_SPI(device, driver, peripheral)                         \
+    static mp_##driver##_spi_t _##device;                              \
+    mp_spi_t *device = (mp_spi_t*)&_##device;
 
-#include "mp_def_empty_drv.h"
+// Instantiate all devices
+MP_DEVICES_TABLE
+
+// Clean all device macro defined 
+#include "mp_def_empty_dev.h"
 
 

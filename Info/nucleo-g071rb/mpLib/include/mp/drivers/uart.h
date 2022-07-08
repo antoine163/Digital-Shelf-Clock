@@ -73,7 +73,7 @@ typedef enum
 }mp_uart_stopbit_t;
 
 // Include ---------------------------------------------------------------------
-#include "mpDriversTable.h"
+#include "mpDevicesTable.h"
 #include "mp_port_uart.h"
 
 #include "mp_def_empty_drv.h"
@@ -89,14 +89,14 @@ typedef enum
 // Extern global variables -----------------------------------------------------
 #undef MP_DRV_UART
 #define MP_DRV_UART(instance, driver, peripheral)                      \
-    extern mp_uart_t *instance;
+    extern mp_uart_t * instance;
     
 MP_DRIVER_TABLE
 #undef MP_DRV_UART
 #define MP_DRV_UART(instance, driver, peripheral)
 
 // Static functions ---------------------------------------------------------
-static inline int mp_uart_init(mp_uart_t *drv)
+static inline int mp_uart_init(mp_uart_t * drv)
 {
     int ret = -1;
     
