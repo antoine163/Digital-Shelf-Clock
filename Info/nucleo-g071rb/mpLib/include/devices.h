@@ -21,34 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+  
+#ifndef MP_DEVICES_H
+#define MP_DEVICES_H
 
-// Include ---------------------------------------------------------------------
-#include "mp/drivers/gpio.h"
+#define MP_DEVICE(dev)  ((mp_device_t *)dev)
 
-// Implemented functions -------------------------------------------------------
-int mp_port_gpio_init(mp_port_gpio_t * dev, GPIO_TypeDef * pripheral)
+// Typedef ---------------------------------------------------------------------
+typedef struct mp_device_s
 {
-    dev->gpiox = pripheral;
-    _mp_gpio_init_table( (mp_gpio_t*)dev );
+    int isInit;
+    
+    // option semaphor
+    // sem protect;
+} mp_device_t;
+
+static inline int mp_device_take(mp_device_t * dev, unsigned int timeout)
+{
+    (void)dev;
+    (void)timeout;
     return 0;
 }
 
-int mp_port_gpio_deinit(mp_port_gpio_t * dev)
+static inline int mp_device_give(mp_device_t * dev)
 {
-    _mp_gpio_deinit_table( (mp_gpio_t*)dev );
+    (void)dev;
     return 0;
 }
 
-int mp_port_gpio_set_value(mp_port_gpio_t * dev,    unsigned int pinmask,
-                                                    int value)
-{
-    uint32_t bsrr = pinmask<<16; // Reset pinmask
-    bsrr |= value?pinmask:0x00000; // Set pinmask
-    WRITE_REG(dev->gpiox->BSRR, bsrr);
-    return 0;
-}
+#endif // MP_DEVICES_H
 
-int mp_port_gpio_get_value(mp_port_gpio_t * dev, unsigned int pinmask)
-{
-    return (int)LL_GPIO_IsInputPinSet(dev->gpiox, (uint32_t)pinmask);
-}

@@ -35,6 +35,7 @@
 // Structure -------------------------------------------------------------------
 typedef struct
 {
+    mp_gpio_t parent;
     GPIO_TypeDef * gpiox;
 }mp_port_gpio_t;
 
@@ -70,20 +71,9 @@ static inline int mp_port_gpio_set_output(  mp_port_gpio_t * dev,
         case MP_GPIO_PULL_DOWN: ll_pull = LL_GPIO_PULL_DOWN; break;
         default: return -1; // Todo: définir un code d'erreur
     }
-    
-    if (value == 0)
-        LL_GPIO_ResetOutputPin(gpiox, pinmask);
-    else 
-        LL_GPIO_SetOutputPin(gpiox, pinmask);
-        //mp_port_gpio_set_value(dev, port, pinmask, value);
-        //...
-    asm("nop");
-    asm("nop");
-    //uint32_t bsrr = pinmask<<16; // Reset pinmask
-    //bsrr |= _mp_port_gpio_value_to_mask(pinmask, value); // Set pinmask
-    //WRITE_REG(gpiox->BSRR, bsrr);
-    asm("nop");
-    
+
+    mp_port_gpio_set_value(dev, pinmask, value);
+
     LL_GPIO_SetPinOutputType(gpiox, pinmask, ll_type);
     
     // Prepare pupdr and moder registers mask and values.

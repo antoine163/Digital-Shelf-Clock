@@ -161,10 +161,10 @@ void task_test( void* pvParameters )
             //cpt = 0;
         
         
-        //unsigned int val = mp_gpio_get_value(PIN_BP_LED);
+        unsigned int val = mp_gpio_get_value(PIN_BP_LED);
         ////mp_gpio_set_value(PIN_LED_RED, AFF_7SEG_TO_PINMASK(val));
         ////mp_gpio_set_value(PIN_LED_RED, AFF_7SEG_TO_PINMASK(val));
-        //mp_gpio_set_value(PIN_LED_RED, val);
+        mp_gpio_set_value(PIN_LED_RED, val);
         
         
         ////#define MP_GPIO_VECTOR_VALUE(pinsMask, value)

@@ -56,22 +56,22 @@
 #undef MP_DEV_GPIO
 #define MP_DEV_GPIO(device, driver, peripheral)                        \
     static mp_##driver##_gpio_t _##device;                             \
-    mp_gpio_t *device = (mp_gpio_t*)&_##device;
+    mp_gpio_t *device = (mp_gpio_t *)&_##device;
 
 #undef MP_DEV_UART
 #define MP_DEV_UART(device, driver, peripheral)                        \
     static mp_##driver##_uart_t _##device;                             \
-    mp_uart_t *device = (mp_uart_t*)&_##device;
+    mp_uart_t *device = (mp_uart_t *)&_##device;
 
 #undef MP_DEV_ADC
 #define MP_DEV_ADC(device, driver, peripheral)                         \
     static mp_##driver##_adc_t _##device;                              \
-    mp_adc_t *device = (mp_adc_t*)&_##device;
+    mp_adc_t *device = (mp_adc_t *)&_##device;
 
 #undef MP_DEV_SPI
 #define MP_DEV_SPI(device, driver, peripheral)                         \
     static mp_##driver##_spi_t _##device;                              \
-    mp_spi_t *device = (mp_spi_t*)&_##device;
+    mp_spi_t *device = (mp_spi_t *)&_##device;
 
 // Instantiate all devices
 MP_DEVICES_TABLE
