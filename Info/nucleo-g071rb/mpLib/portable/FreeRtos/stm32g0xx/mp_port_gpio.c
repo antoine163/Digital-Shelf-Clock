@@ -38,17 +38,3 @@ int mp_port_gpio_deinit(mp_port_gpio_t * dev)
     _mp_gpio_deinit_table( (mp_gpio_t*)dev );
     return 0;
 }
-
-int mp_port_gpio_set_value(mp_port_gpio_t * dev,    unsigned int pinmask,
-                                                    int value)
-{
-    uint32_t bsrr = pinmask<<16; // Reset pinmask
-    bsrr |= value?pinmask:0x00000; // Set pinmask
-    WRITE_REG(dev->gpiox->BSRR, bsrr);
-    return 0;
-}
-
-int mp_port_gpio_get_value(mp_port_gpio_t * dev, unsigned int pinmask)
-{
-    return (int)LL_GPIO_IsInputPinSet(dev->gpiox, (uint32_t)pinmask);
-}

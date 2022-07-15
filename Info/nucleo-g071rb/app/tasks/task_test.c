@@ -140,31 +140,31 @@ void task_test( void* pvParameters )
     
     
     
-    //int cpt = 0;
+    int cpt = 0;
     while(1)
     {
         //vTaskDelay(450 / portTICK_PERIOD_MS);
         LL_mDelay(450);
-        mp_gpio_set(PIN_LED_GREEN);
+        mp_gpio_up(PIN_LED_GREEN);
         mp_gpio_toggle(PIN_LED_YELLOW);
-        mp_gpio_set(LED_GREEN);
+        mp_gpio_up(LED_GREEN);
         
         //vTaskDelay(50 / portTICK_PERIOD_MS);
         LL_mDelay(50);
-        mp_gpio_reset(PIN_LED_GREEN);
+        mp_gpio_down(PIN_LED_GREEN);
         mp_gpio_toggle(PIN_LED_YELLOW);
-        mp_gpio_reset(LED_GREEN);
+        mp_gpio_down(LED_GREEN);
         
         ////mp_uart_printf(drv_uart1, "Hello:%u:%u\r\n", cpt, cpt2);
-        //cpt++;
-        //if(cpt >= (int)sizeof(digit))
-            //cpt = 0;
+        cpt++;
+        if(cpt >= (int)sizeof(digit))
+            cpt = 0;
         
         
-        unsigned int val = mp_gpio_get_value(PIN_BP_LED);
+        unsigned int val = mp_gpio_getValue(PIN_BP_LED);
         ////mp_gpio_set_value(PIN_LED_RED, AFF_7SEG_TO_PINMASK(val));
         ////mp_gpio_set_value(PIN_LED_RED, AFF_7SEG_TO_PINMASK(val));
-        mp_gpio_set_value(PIN_LED_RED, val);
+        mp_gpio_setValue(PIN_LED_RED, val);
         
         
         ////#define MP_GPIO_VECTOR_VALUE(pinsMask, value)
@@ -172,7 +172,7 @@ void task_test( void* pvParameters )
         ////valpin |= 
         
         
-        ////mp_gpio_set_value(AFF_7SEG, digit[cpt]);
+        mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
         //mp_gpio_set_value(AFF_7SEG_A, digit[cpt]);
         
         

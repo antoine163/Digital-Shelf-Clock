@@ -35,23 +35,38 @@
 // Structure -------------------------------------------------------------------
 typedef struct
 {
-    mp_gpio_t parent;
+    mp_gpio_t gpio_parent;
     GPIO_TypeDef * gpiox;
 }mp_port_gpio_t;
 
 // Prototype functions ---------------------------------------------------------
 int mp_port_gpio_init(mp_port_gpio_t * dev, GPIO_TypeDef * pripheral);
 int mp_port_gpio_deinit(mp_port_gpio_t * dev);
-int mp_port_gpio_set_value(mp_port_gpio_t * dev,    unsigned int pinmask,
-                                                    int value);
-int mp_port_gpio_get_value( mp_port_gpio_t * dev,    unsigned int pinmask);
 
 // Static inline functions -----------------------------------------------------
-static inline int mp_port_gpio_set_output(  mp_port_gpio_t * dev,
-                                            unsigned int pinmask,
-                                            mp_gpio_type_t type, 
-                                            mp_gpio_pull_t pull, 
-                                            int value)
+static inline int mp_port_gpio_setLevel(mp_port_gpio_t * dev,
+                                        unsigned int pinmask,
+                                        unsigned int level)
+{
+    uint32_t bsrr = pinmask<<16; // Reset pinmask
+    bsrr |= level&pinmask; // Set pinmask
+    WRITE_REG(dev->gpiox->BSRR, bsrr);
+    return 0;
+}
+
+static inline int mp_port_gpio_getLevel(mp_port_gpio_t * dev,
+                                    unsigned int pinmask,
+                                    unsigned int * level)
+{
+    *level = LL_GPIO_ReadInputPort(dev->gpiox)&pinmask;
+    return 0;
+}
+
+static inline int mp_port_gpio_output(  mp_port_gpio_t * dev,
+                                        unsigned int pinmask,
+                                        mp_gpio_type_t type, 
+                                        mp_gpio_pull_t pull, 
+                                        unsigned int level)
 {
     GPIO_TypeDef * gpiox = dev->gpiox;
     uint32_t ll_type;
@@ -72,8 +87,8 @@ static inline int mp_port_gpio_set_output(  mp_port_gpio_t * dev,
         default: return -1; // Todo: définir un code d'erreur
     }
 
-    mp_port_gpio_set_value(dev, pinmask, value);
-
+    // Write default value before configure gpio output type
+    mp_port_gpio_setLevel(dev, pinmask, level);
     LL_GPIO_SetPinOutputType(gpiox, pinmask, ll_type);
     
     // Prepare pupdr and moder registers mask and values.
@@ -116,9 +131,9 @@ static inline int mp_port_gpio_set_output(  mp_port_gpio_t * dev,
     return 0;
 }
 
-static inline int mp_port_gpio_set_input(   mp_port_gpio_t * dev,
-                                            unsigned int pinmask,
-                                            mp_gpio_pull_t pull)
+static inline int mp_port_gpio_input(   mp_port_gpio_t * dev,
+                                        unsigned int pinmask,
+                                        mp_gpio_pull_t pull)
 {
     uint32_t ll_pull;
     
@@ -171,8 +186,8 @@ static inline int mp_port_gpio_set_input(   mp_port_gpio_t * dev,
     return 0;
 }
 
-static inline int mp_port_gpio_set_default( mp_port_gpio_t * dev,
-                                            unsigned int pinmask)
+static inline int mp_port_gpio_default( mp_port_gpio_t * dev,
+                                        unsigned int pinmask)
 {
     // Prepare pupdr and moder registers mask and values.
     uint32_t regsmask = 0;
@@ -228,14 +243,14 @@ static inline int mp_port_gpio_ctl( mp_port_gpio_t * dev,
     return -1;
 }
 
-static inline int mp_port_gpio_reset(   mp_port_gpio_t * dev,
+static inline int mp_port_gpio_down(    mp_port_gpio_t * dev,
                                         unsigned int pinmask)
 {
     LL_GPIO_ResetOutputPin(dev->gpiox, pinmask);
     return 0;
 }
 
-static inline int mp_port_gpio_set( mp_port_gpio_t * dev, 
+static inline int mp_port_gpio_up(  mp_port_gpio_t * dev, 
                                     unsigned int pinmask)
 {
     (void)dev;
