@@ -27,6 +27,7 @@
 
 // Defines ---------------------------------------------------------------------
 #define PIN_LED_RED         MP_GPIO_PIN(dev_gpiob, 13)
+//#define PIN_LED_GREEN       MP_GPIO_PIN(dev_gpiob, 10)
 #define PIN_LED_GREEN       MP_GPIO_PIN(dev_gpiob, 10)
 #define PIN_LED_YELLOW      MP_GPIO_PIN(dev_gpiob, 15)
 #define PIN_BP_LED          MP_GPIO_PIN(dev_gpiob, 2)
@@ -65,8 +66,8 @@
  */
 #define MP_GPIO_TABLE                                                  \
 /* GPIO OUT:    name,           type,       pull,   default level    */\
-    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     HIGH)              \
-    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     HIGH)              \
+    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     1)                 \
+    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     1)                 \
     MP_GPIO_OUT(PIN_LED_GREEN,  PUSH_PULL,  NO,     HIGH)              \
     MP_GPIO_OUT(PIN_LED_YELLOW, PUSH_PULL,  NO,     HIGH)              \
 /* AFF_7SEG                                                          */\
@@ -75,5 +76,39 @@
     MP_GPIO_IN( BP1,                        NO)                        \
     MP_GPIO_IN( BP2,                        UP)                        \
     MP_GPIO_IN( PIN_BP_LED,                 UP)
+
+
+
+#if 0
+#define MP_GPIO_IT_TABLE                                               \
+    MP_GPIO_IT(PIN_GPIOEX_IRQ,  FALLING,                               \
+        {                                                              \
+            mp_gpioex_handler(dev_gpiex_in);                           \
+        })                                                             \
+    MP_GPIO_IT(BP1,             FALLING,    callBackBp1())             \
+    MP_GPIO_IT(BP2,             FALLING,    callBackBp2())             \
+    MP_GPIO_IT(PIN_BP_LED,      FALLING,                               \
+        {                                                              \
+            unsigned int val = mp_gpio_getValue(PIN_BP_LED);           \
+            mp_gpio_setValue(PIN_LED_RED, val);                        \
+        })
+        
+        
+#define MP_HANDLER_TABLE                                               \
+/*              vector,             priority,   handler(s)           */\
+    MP_HANDLER( USART1,             1,          mp_port_uart_handler(USART1))\
+    MP_HANDLER( USART3_4_LPUART1,   1,          mp_port_uart_handler(USART3);\
+                                                mp_port_uart_handler(USART4);\
+                                                mp_port_uart_handler(LPUART1)\
+    MP_HANDLER( USART2,             1,          mp_port_uart_handler(USART2))
+    
+    //MP_HANDLER( EXTI4_15,           1,          mp_port_exti4_14_handler())
+    //MP_HANDLER( EXTI4_15,           1,          mp_port_exti13_handler();
+                                                //mp_port_exti7_handler)
+
+    MP_HANDLER( EXTI4_15,           1,          mp_port_exti_handler(LL_EXTI_LINE_13);
+                                                mp_port_exti_handler(LL_EXTI_LINE_7))
+                                                
+#endif
 
 #endif // MP_HARD_MAP_H

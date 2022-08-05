@@ -21,20 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+  
+#ifndef MP_DRIVERS_H
+#define MP_DRIVERS_H
 
 // Include ---------------------------------------------------------------------
-#include "mp/drivers/gpio.h"
+#include "mpDevicesTable.h"
 
-// Implemented functions -------------------------------------------------------
-int mp_port_gpio_init(mp_port_gpio_t * dev, GPIO_TypeDef * pripheral)
-{
-    dev->gpiox = pripheral;
-    _mp_gpio_init_table( (mp_gpio_t*)dev );
-    return 0;
-}
+// Include the file where are defined additional drivers unknown by mpLib
+#ifdef MP_ADD_DRIVER_HEADER
+    #include MP_ADD_DRIVER_HEADER
+#endif // MP_EX_DRIVER_HEADER
 
-int mp_port_gpio_deinit(mp_port_gpio_t * dev)
+// Define ----------------------------------------------------------------------
+// MP_DRIVER(<device type>_<driver>)
+// - <device type>: uppercase
+// - <driver>: lowercase
+// eg: MP_DRIVER(GPIO_port)
+#define MP_DRIVER_TABLE                                                \
+    MP_DRIVER(GPIO, port)
+
+// enum ------------------------------------------------------------------------
+
+// Build drivers type id
+typedef enum
 {
-    _mp_gpio_deinit_table( (mp_gpio_t*)dev );
-    return 0;
-}
+    #define MP_DRIVER(device_type, driver)                             \
+            MP_DRIVER_TYPE_##device_type##_##driver,
+    
+    // Extend drivers table with additional drivers unknown by mpLib
+    #ifdef MP_ADD_DRIVERS_TABLE
+        #include MP_ADD_DRIVERS_TABLE
+    #endif // MP_ADD_DRIVERS_TABLE
+
+    MP_DRIVER_TABLE
+}mp_driver_type_t;
+
+#endif // MP_DRIVERS_H
+

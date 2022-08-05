@@ -36,13 +36,13 @@
  * The result give :
  * @code
  * static mp_port_spi_t _dev_spi1;
- * mp_spi_t *dev_spi1 = (mp_spi_t*)&_dev_spi1;
+ * mp_spi_t * const dev_spi1 = (mp_spi_t*)&_dev_spi1;
  *
  * static mp_port_adc_t _dev_adc1;
- * mp_adc_t *dev_adc1 = (mp_adc_t*)&_dev_adc1;
+ * mp_adc_t * const dev_adc1 = (mp_adc_t*)&_dev_adc1;
  *
  * static mp_ads7822_adc_t _dev_adc2;
- * mp_adc_t *dev_adc2 = (mp_adc_t*)&_dev_adc2;
+ * mp_adc_t * const dev_adc2 = (mp_adc_t*)&_dev_adc2;
  * @endcode
  */
  
@@ -52,31 +52,48 @@
 
 // Global variables ------------------------------------------------------------
 
-// Define all device macro to build instances
-#undef MP_DEV_GPIO
-#define MP_DEV_GPIO(device, driver, peripheral)                        \
-    static mp_##driver##_gpio_t _##device;                             \
-    mp_gpio_t *device = (mp_gpio_t *)&_##device;
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Reserve memory for all devices
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#undef MP_DEV_UART
+// Undef all macro defined device 
+#include "mp_undef_all_dev.h"
+
+// Define all device macro to build instances
+#define MP_DEV_GPIO(device, driver, peripheral)                        \
+    mp_gpio_##driver##_t _##device =                                   \
+    {                                                                  \
+        .gpio_parent.device_parent.devid = device,                     \
+        .gpiox = peripheral,                                           \
+    };
+
+
+#if 0
 #define MP_DEV_UART(device, driver, peripheral)                        \
     static mp_##driver##_uart_t _##device;                             \
-    mp_uart_t *device = (mp_uart_t *)&_##device;
+    mp_uart_t * const device = (mp_uart_t * const)&_##device;
 
-#undef MP_DEV_ADC
 #define MP_DEV_ADC(device, driver, peripheral)                         \
     static mp_##driver##_adc_t _##device;                              \
-    mp_adc_t *device = (mp_adc_t *)&_##device;
+    mp_adc_t * const device = (mp_adc_t * const)&_##device;
 
-#undef MP_DEV_SPI
 #define MP_DEV_SPI(device, driver, peripheral)                         \
     static mp_##driver##_spi_t _##device;                              \
-    mp_spi_t *device = (mp_spi_t *)&_##device;
+    mp_spi_t * const device = (mp_spi_t * const)&_##device;
+#endif
 
 // Instantiate all devices
 MP_DEVICES_TABLE
 
-// Clean all device macro defined 
-#include "mp_def_empty_dev.h"
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Build the devices table
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+// Undef all macro defined device 
+#include "mp_undef_all_dev.h"
 
+// Build table with all device pointer
+#define MP_DEV_GPIO(device, driver, peripheral)                        \
+    (mp_device_t * const)&_##device,
+
+mp_device_t * const _mp_devices_table[] = { MP_DEVICES_TABLE };

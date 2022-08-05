@@ -45,14 +45,14 @@ typedef struct
 }mp_port_uart_t;
 
 // Extern protected global variables --------------------------------------------------
-extern mp_port_uart_t *_mp_stm_usart1_drv;
-extern mp_port_uart_t *_mp_stm_usart2_drv;
-extern mp_port_uart_t *_mp_stm_usart3_drv;
-extern mp_port_uart_t *_mp_stm_usart4_drv;
-extern mp_port_uart_t *_mp_stm_usart5_drv;
-extern mp_port_uart_t *_mp_stm_usart6_drv;
-extern mp_port_uart_t *_mp_stm_lpuart1_drv;
-extern mp_port_uart_t *_mp_stm_lpuart2_drv;
+extern mp_port_uart_t *_mp_port_uart_usart1_dev;
+extern mp_port_uart_t *_mp_port_uart_usart2_dev;
+extern mp_port_uart_t *_mp_port_uart_usart3_dev;
+extern mp_port_uart_t *_mp_port_uart_usart4_dev;
+extern mp_port_uart_t *_mp_port_uart_usart5_dev;
+extern mp_port_uart_t *_mp_port_uart_usart6_dev;
+extern mp_port_uart_t *_mp_port_uart_lpuart1_dev;
+extern mp_port_uart_t *_mp_port_uart_lpuart2_dev;
 
 // Prototype functions ---------------------------------------------------------
 int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev);
@@ -167,7 +167,8 @@ static inline void mp_port_uart_handler(USART_TypeDef *dev)
         //Error_Callback();
         
         /* Disable USARTx_IRQn */
-        NVIC_DisableIRQ(USART2_IRQn);
+        //NVIC_DisableIRQ(USART2_IRQn);
+        mp_port_irq_disable(drv);
     }
 }
 

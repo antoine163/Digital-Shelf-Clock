@@ -21,33 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-  
-#ifndef MP_DEVICES_H
-#define MP_DEVICES_H
+ 
+/**
+ * @todo a revoire
+ * @file This file define all device macros @p MP_DEV_UART*** to empty.
+ * 
+ * It used to auto implement driver interface file like "mp/drivers/uart.h" and
+ * it is include at etch time it necessarian. Moreover, it shouldn't be include
+ * in application files.
+ * 
+ * @note This file must not be protected against multiple inclusions.
+ */
 
-#define MP_DEVICE(dev)  ((mp_device_t *)dev)
+// Defines ---------------------------------------------------------------------
 
-// Typedef ---------------------------------------------------------------------
-typedef struct mp_device_s
-{
-    int isInit;
-    
-    // option semaphor
-    // sem protect;
-} mp_device_t;
-
-static inline int mp_device_take(mp_device_t * dev, unsigned int timeout)
-{
-    (void)dev;
-    (void)timeout;
-    return 0;
-}
-
-static inline int mp_device_give(mp_device_t * dev)
-{
-    (void)dev;
-    return 0;
-}
-
-#endif // MP_DEVICES_H
+// Undef all device macro
+#undef MP_DEV_UART
+#undef MP_DEV_ADC
+#undef MP_DEV_SPI
+#undef MP_DEV_GPIO
 

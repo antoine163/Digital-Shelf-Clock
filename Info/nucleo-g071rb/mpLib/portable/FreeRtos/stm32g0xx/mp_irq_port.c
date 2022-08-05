@@ -21,26 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
- 
-/**
- * @todo a revoire
- * @file This file define all device macros @p MP_DEV_UART*** to empty.
- * 
- * It used to auto implement driver interface file like "mp/drivers/uart.h" and
- * it is include at etch time it necessarian. Moreover, it shouldn't be include
- * in application files.
- * 
- * @note This file must not be protected against multiple inclusions.
- */
 
-// Defines ---------------------------------------------------------------------
+// Include ---------------------------------------------------------------------
+#include "mp/drivers/irq.h"
 
-// Undef all device macro
-#include "mp_undef_all_dev.h"
-
-// Define all device macro to empty
-#define MP_DEV_UART(device, driver, peripheral)
-#define MP_DEV_ADC(device, driver, peripheral)
-#define MP_DEV_SPI(device, driver, peripheral)
-#define MP_DEV_GPIO(device, driver, peripheral)
-
+// Implemented functions -------------------------------------------------------
