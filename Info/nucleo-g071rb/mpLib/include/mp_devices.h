@@ -30,7 +30,8 @@
 #include "mp_drivers.h"
 
 
-#define MP_DEVICE(dev)  ((mp_device_t *)dev)
+#define MP_DEVICE(dev)           ((mp_device_t *)dev)
+#define MP_DEVICE_GET(devid)     mp_device_get(devid)
 
 #define MP_DEVICE_ID(dev)       ( dev & 0x0000ffff )
 #define MP_DEVICE_TYPE(dev)     ( dev & 0xffff0000 )

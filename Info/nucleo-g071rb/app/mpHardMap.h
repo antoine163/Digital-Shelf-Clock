@@ -27,14 +27,13 @@
 
 // Defines ---------------------------------------------------------------------
 #define PIN_LED_RED         MP_GPIO_PIN(dev_gpiob, 13)
-//#define PIN_LED_GREEN       MP_GPIO_PIN(dev_gpiob, 10)
 #define PIN_LED_GREEN       MP_GPIO_PIN(dev_gpiob, 10)
 #define PIN_LED_YELLOW      MP_GPIO_PIN(dev_gpiob, 15)
 #define PIN_BP_LED          MP_GPIO_PIN(dev_gpiob, 2)
 
 #define LED_GREEN           MP_GPIO_PIN(dev_gpioa, 5)
 #define BP1                 MP_GPIO_PIN(dev_gpioc, 13)
-#define BP2                 MP_GPIO_PIN(dev_gpioc, 7)
+#define BP2                 MP_GPIO_PIN(dev_gpiob, 7)
 
 //#define USART2_TX           MP_GPIO_PIN(dev_gpioa, 2)
 //#define USART2_RX           MP_GPIO_PIN(dev_gpioa, 3)
@@ -80,20 +79,7 @@
 
 
 #if 0
-#define MP_GPIO_IT_TABLE                                               \
-    MP_GPIO_IT(PIN_GPIOEX_IRQ,  FALLING,                               \
-        {                                                              \
-            mp_gpioex_handler(dev_gpiex_in);                           \
-        })                                                             \
-    MP_GPIO_IT(BP1,             FALLING,    callBackBp1())             \
-    MP_GPIO_IT(BP2,             FALLING,    callBackBp2())             \
-    MP_GPIO_IT(PIN_BP_LED,      FALLING,                               \
-        {                                                              \
-            unsigned int val = mp_gpio_getValue(PIN_BP_LED);           \
-            mp_gpio_setValue(PIN_LED_RED, val);                        \
-        })
-        
-        
+
 #define MP_HANDLER_TABLE                                               \
 /*              vector,             priority,   handler(s)           */\
     MP_HANDLER( USART1,             1,          mp_port_uart_handler(USART1))\
@@ -101,13 +87,9 @@
                                                 mp_port_uart_handler(USART4);\
                                                 mp_port_uart_handler(LPUART1)\
     MP_HANDLER( USART2,             1,          mp_port_uart_handler(USART2))
-    
-    //MP_HANDLER( EXTI4_15,           1,          mp_port_exti4_14_handler())
-    //MP_HANDLER( EXTI4_15,           1,          mp_port_exti13_handler();
-                                                //mp_port_exti7_handler)
-
-    MP_HANDLER( EXTI4_15,           1,          mp_port_exti_handler(LL_EXTI_LINE_13);
-                                                mp_port_exti_handler(LL_EXTI_LINE_7))
+    MP_HANDLER( EXTI0_1,            1,          mp_gpio_port_0_1_handler())
+    MP_HANDLER( EXTI2_3,            1,          mp_gpio_port_2_3_handler())
+    MP_HANDLER( EXTI4_15,           1,          mp_gpio_port_4_15_handler())
                                                 
 #endif
 

@@ -28,12 +28,12 @@
 // Include ---------------------------------------------------------------------
 #include "stm32g0xx.h"
 // Don't include "mp/drivers/gpio.h" here. It is "mp/drivers/gpio.h" which
-// include "mp_port_gpio.h" after to have declare enum, strucur, typdef, ...
+// include "mp_gpio_port.h" after to have declare enum, strucur, typdef, ...
 
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_exti.h"
 
-
+// Define macro ----------------------------------------------------------------
 #define MP_PORT_GPIO(dev)           ((mp_gpio_port_t *)dev)
 #define MP_PORT_GPIO_GET(devid)     MP_PORT_GPIO(mp_device_get(devid))
 
@@ -45,46 +45,24 @@ typedef struct
 }mp_gpio_port_t;
 
 // Extern protected global variables -------------------------------------------
-extern void (*_mp_port_gpio_extix_callback[16])(mp_gpio_trigger_t);
+extern void (*_mp_gpio_port_extix_callback[16])(mp_gpio_trigger_t);
 
 // Prototype functions ---------------------------------------------------------
-int mp_port_gpio_init(mp_device_id_t devid);
-int mp_port_gpio_deinit(mp_device_id_t devid);
+int mp_gpio_port_init(mp_device_id_t devid);
+int mp_gpio_port_deinit(mp_device_id_t devid);
 
-int mp_port_gpio_enableIt(  mp_device_id_t devid, unsigned int pinmask,
-                            mp_gpio_trigger_t trigger,
-                            void (*callback)(mp_gpio_trigger_t));
+static inline int mp_gpio_port_setLevel(mp_device_id_t devid,
+                                        unsigned int pinmask,
+                                        unsigned int level);
 
 // Static inline functions -----------------------------------------------------
-static inline int mp_port_gpio_setLevel(mp_device_id_t devid,
-                                        unsigned int pinmask,
-                                        unsigned int level)
-{
-    uint32_t bsrr = pinmask<<16; // Reset pinmask
-    bsrr |= level&pinmask; // Set pinmask
-    
-    mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
-    WRITE_REG(dev->gpiox->BSRR, bsrr);
-    return 0;
-}
-
-static inline int mp_port_gpio_getLevel(mp_device_id_t devid,
-                                    unsigned int pinmask,
-                                    unsigned int * level)
-{
-    mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
-    *level = LL_GPIO_ReadInputPort(dev->gpiox)&pinmask;
-    return 0;
-}
-
-static inline int mp_port_gpio_output(  mp_device_id_t devid,
+static inline int mp_gpio_port_output(  mp_device_id_t devid,
                                         unsigned int pinmask,
                                         mp_gpio_type_t type, 
                                         mp_gpio_pull_t pull, 
                                         unsigned int level)
 {
-    mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
-    GPIO_TypeDef * gpiox = dev->gpiox;
+    GPIO_TypeDef * gpiox = MP_PORT_GPIO_GET(devid)->gpiox;
     uint32_t ll_type;
     uint32_t ll_pull;
     
@@ -104,7 +82,7 @@ static inline int mp_port_gpio_output(  mp_device_id_t devid,
     }
 
     // Write default value before configure gpio output type
-    mp_port_gpio_setLevel(devid, pinmask, level);
+    mp_gpio_port_setLevel(devid, pinmask, level);
     LL_GPIO_SetPinOutputType(gpiox, pinmask, ll_type);
     
     // Prepare pupdr and moder registers mask and values.
@@ -113,7 +91,6 @@ static inline int mp_port_gpio_output(  mp_device_id_t devid,
     uint32_t moder = 0;
     uint32_t shift;
 
-# if 1 // 2420
     #define _MP_GPIO_PINMASK_SET_PULL_AND_MODE(pin)                    \
         if ( pinmask & (1<<pin) )                                      \
         {                                                              \
@@ -140,18 +117,6 @@ static inline int mp_port_gpio_output(  mp_device_id_t devid,
     _MP_GPIO_PINMASK_SET_PULL_AND_MODE(14);
     _MP_GPIO_PINMASK_SET_PULL_AND_MODE(15);
     #undef _MP_GPIO_PINMASK_SET_PULL_AND_MODE
-#else // 2640
-    for (uint32_t pin = 0; pin < 16; pin++)
-    {
-        if ( pinmask & (1<<pin) )
-        {
-            shift = (2*pin);
-            regsmask |= 0x3 << shift;
-            pupdr |= ll_pull << shift;
-            moder |= LL_GPIO_MODE_OUTPUT << shift;
-        }
-    }
-#endif
 
     // Set values to pupdr and moder registers
     MODIFY_REG(gpiox->PUPDR, regsmask, pupdr);
@@ -160,12 +125,13 @@ static inline int mp_port_gpio_output(  mp_device_id_t devid,
     return 0;
 }
 
-static inline int mp_port_gpio_input(   mp_device_id_t devid,
+static inline int mp_gpio_port_input(   mp_device_id_t devid,
                                         unsigned int pinmask,
                                         mp_gpio_pull_t pull)
 {
+    GPIO_TypeDef * gpiox = MP_PORT_GPIO_GET(devid)->gpiox;
     uint32_t ll_pull;
-    
+
     switch (pull)
     {
         case MP_GPIO_PULL_NO:   ll_pull = LL_GPIO_PULL_NO; break;
@@ -180,7 +146,6 @@ static inline int mp_port_gpio_input(   mp_device_id_t devid,
     uint32_t moder = 0;
     uint32_t shift;
 
-#if 1 // 2420
     #define _MP_GPIO_PINMASK_SET_PULL_AND_MODE(pin)                    \
         if ( pinmask & (1<<pin) )                                      \
         {                                                              \
@@ -207,38 +172,25 @@ static inline int mp_port_gpio_input(   mp_device_id_t devid,
     _MP_GPIO_PINMASK_SET_PULL_AND_MODE(14);
     _MP_GPIO_PINMASK_SET_PULL_AND_MODE(15);
     #undef _MP_GPIO_PINMASK_SET_PULL_AND_MODE
-#else // 2480
-    for (uint32_t pin = 0; pin < 16; pin++)
-    {
-        if ( pinmask & (1<<pin) )
-        {
-            shift = (2*pin);
-            regsmask |= 0x3 << shift;
-            pupdr |= ll_pull << shift;
-            moder |= LL_GPIO_MODE_INPUT << shift;
-        }
-    }
-#endif
     
     // Set values to pupdr and moder registers
-    mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
-    GPIO_TypeDef * gpiox = dev->gpiox;
     MODIFY_REG(gpiox->PUPDR, regsmask, pupdr);
     MODIFY_REG(gpiox->MODER, regsmask, moder);
     
     return 0;
 }
 
-static inline int mp_port_gpio_default( mp_device_id_t devid,
+static inline int mp_gpio_port_default( mp_device_id_t devid,
                                         unsigned int pinmask)
 {
+    GPIO_TypeDef * gpiox = MP_PORT_GPIO_GET(devid)->gpiox;
+    
     // Prepare pupdr and moder registers mask and values.
     uint32_t regsmask = 0;
     uint32_t pupdr = 0;
     uint32_t moder = 0;
     uint32_t shift;
 
-#if 0 // 2420
     #define _MP_GPIO_PINMASK_SET_PULL_AND_MODE(pin)                    \
         if ( pinmask & (1<<pin) )                                      \
         {                                                              \
@@ -265,29 +217,35 @@ static inline int mp_port_gpio_default( mp_device_id_t devid,
     _MP_GPIO_PINMASK_SET_PULL_AND_MODE(14);
     _MP_GPIO_PINMASK_SET_PULL_AND_MODE(15);
     #undef _MP_GPIO_PINMASK_SET_PULL_AND_MODE
-#else // 2420
-    for (uint32_t pin = 0; pin < 16; pin++)
-    {
-        if ( pinmask & (1<<pin) )
-        {
-            shift = (2*pin);
-            regsmask |= 0x3 << shift;
-            pupdr |= LL_GPIO_PULL_NO << shift;
-            moder |= LL_GPIO_MODE_ANALOG << shift;
-        }
-    }
-#endif
 
     // Set values to pupdr and moder registers
-    mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
-    GPIO_TypeDef *gpiox = dev->gpiox;
     MODIFY_REG(gpiox->PUPDR, regsmask, pupdr);
     MODIFY_REG(gpiox->MODER, regsmask, moder);
     
     return 0;
 }
 
-static inline int mp_port_gpio_ctl( mp_device_id_t devid,
+static inline int mp_gpio_port_setLevel(mp_device_id_t devid,
+                                        unsigned int pinmask,
+                                        unsigned int level)
+{
+    mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
+    uint32_t bsrr = pinmask<<16; // Reset pinmask
+    bsrr |= level&pinmask; // Set pinmask
+    WRITE_REG(dev->gpiox->BSRR, bsrr);
+    return 0;
+}
+
+static inline int mp_gpio_port_getLevel(mp_device_id_t devid,
+                                    unsigned int pinmask,
+                                    unsigned int * level)
+{
+    mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
+    *level = LL_GPIO_ReadInputPort(dev->gpiox)&pinmask;
+    return 0;
+}
+
+static inline int mp_gpio_port_ctl( mp_device_id_t devid,
                                     unsigned int pinmask,
                                     int request,
                                     va_list ap)
@@ -300,7 +258,7 @@ static inline int mp_port_gpio_ctl( mp_device_id_t devid,
     return -1;
 }
 
-static inline int mp_port_gpio_down(    mp_device_id_t devid,
+static inline int mp_gpio_port_down(    mp_device_id_t devid,
                                         unsigned int pinmask)
 {
     mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
@@ -308,7 +266,7 @@ static inline int mp_port_gpio_down(    mp_device_id_t devid,
     return 0;
 }
 
-static inline int mp_port_gpio_up(  mp_device_id_t devid, 
+static inline int mp_gpio_port_up(  mp_device_id_t devid, 
                                     unsigned int pinmask)
 {
     mp_gpio_port_t * dev = MP_PORT_GPIO_GET(devid);
@@ -324,7 +282,52 @@ static inline int mp_gpio_port_toggle(  mp_device_id_t devid,
     return 0;
 }
 
-static inline int mp_port_gpio_disableIt(   mp_device_id_t devid,
+static inline int mp_gpio_port_enableIt(mp_device_id_t devid,
+                                        unsigned int pinmask,
+                                        mp_gpio_trigger_t trigger,
+                                        void (*callback)(mp_gpio_trigger_t))
+{  
+    if (LL_EXTI_IsEnabledIT_0_31((uint32_t)pinmask))
+        return -1;
+    
+    // Compute the port value from gpio base
+    // - The port match with the Port argument of LL_EXTI_SetEXTISource().
+    // - The gpio base match with GPIOx_BASE (with x = A, B, C, D, E or F).
+    mp_gpio_port_t * dev = (mp_gpio_port_t *)mp_device_get(devid);
+    uint32_t port = ( ( (uint32_t)dev->gpiox) >> 10 ) & 0x7;
+            
+    // Find the pin number from pinmask to configure external interruption
+    for (int i = 15; i >= 0; i--)
+    {
+        if ((unsigned int)(1<<i) == pinmask)
+        {
+            _mp_gpio_port_extix_callback[i] = callback;
+
+            // Configure source input for the EXTI external interrupt.
+            // See LL_EXTI_SetEXTISource()
+            uint32_t clearmask = 0xff << (i & 0x03) * 8;
+            uint32_t setmask = port << (i & 0x03) * 8;
+            MODIFY_REG(EXTI->EXTICR[i>>2], clearmask, setmask);
+            
+            // Clean trigger flags
+            LL_EXTI_ClearFallingFlag_0_31((uint32_t)pinmask);
+            LL_EXTI_ClearRisingFlag_0_31((uint32_t)pinmask);
+            
+            // Enable trigger
+            if (trigger & MP_GPIO_TRIGGER_FALLING)
+                LL_EXTI_EnableFallingTrig_0_31((uint32_t)pinmask);
+            if (trigger & MP_GPIO_TRIGGER_RISING)
+                LL_EXTI_EnableRisingTrig_0_31((uint32_t)pinmask);
+            
+            LL_EXTI_EnableIT_0_31((uint32_t)pinmask);
+            return 0;
+        }
+    }
+    
+    return -1;
+}
+
+static inline int mp_gpio_port_disableIt(   mp_device_id_t devid,
                                             unsigned int pinmask)
 {
     (void)devid;
@@ -335,27 +338,103 @@ static inline int mp_port_gpio_disableIt(   mp_device_id_t devid,
 }
 
 __attribute__((always_inline))
-static inline void mp_port_gpio4_15_handler()
-{     
-    // 0x0000fff0 is mask from LL_EXTI_LINE_4 to LL_EXTI_LINE_15
+static inline void mp_gpio_port_4_15_handler()
+{   
+    // Get the enabled triggers. See LL_EXTI_IsEnabledFallingTrig_0_31() and 
+    // LL_EXTI_IsEnabledRisingTrig_0_31()
+    // Note: 0x0000fff0 is mask from LL_EXTI_LINE_4 to LL_EXTI_LINE_15
     uint32_t enabledFallingTrig = READ_BIT(EXTI->FTSR1, 0x0000fff0);
     uint32_t enabledRisingTrig = READ_BIT(EXTI->RTSR1, 0x0000fff0);
     
+    // Get the actives flags. See LL_EXTI_IsActiveFallingFlag_0_31() and
+    // LL_EXTI_IsActiveRisingFlag_0_31()
     uint32_t isActiveFallingFlag = READ_BIT(EXTI->FPR1, enabledFallingTrig);
     uint32_t isActiveRisingFlag = READ_BIT(EXTI->RPR1, enabledRisingTrig);
     
+    // Clean the active flags
     LL_EXTI_ClearFallingFlag_0_31(isActiveFallingFlag);
     LL_EXTI_ClearRisingFlag_0_31(isActiveRisingFlag);
     
-    for (unsigned int i = 1; i < 16; i++)
+    // Call callbacks for each trigged lines/pins from 15 to 4
+    mp_gpio_trigger_t trigger;
+    isActiveFallingFlag >>= 4;
+    isActiveRisingFlag >>= 3;
+    for (int i = 11; i >= 0; i--)
     {
-        mp_gpio_trigger_t trigger = 0x00;
-        trigger |= (isActiveFallingFlag >> i) & 1;
-        trigger |= ((isActiveRisingFlag >> i) & 1 ) << 1;
+        trigger = (isActiveFallingFlag >> i) & MP_GPIO_TRIGGER_FALLING;
+        trigger |= (isActiveRisingFlag >> i) & MP_GPIO_TRIGGER_RISING;
         
         if (trigger)
-            _mp_port_gpio_extix_callback[i](trigger);
+            _mp_gpio_port_extix_callback[i+4](trigger);
     }
+}
+
+__attribute__((always_inline))
+static inline void mp_gpio_port_2_3_handler()
+{   
+    // Get the enabled triggers. See LL_EXTI_IsEnabledFallingTrig_0_31() and 
+    // LL_EXTI_IsEnabledRisingTrig_0_31()
+    // Note: 0x0000000c is mask from LL_EXTI_LINE_2 to LL_EXTI_LINE_3
+    uint32_t enabledFallingTrig = READ_BIT(EXTI->FTSR1, 0x0000000c);
+    uint32_t enabledRisingTrig = READ_BIT(EXTI->RTSR1, 0x0000000c);
+    
+    // Get the actives flags. See LL_EXTI_IsActiveFallingFlag_0_31() and
+    // LL_EXTI_IsActiveRisingFlag_0_31()
+    uint32_t isActiveFallingFlag = READ_BIT(EXTI->FPR1, enabledFallingTrig);
+    uint32_t isActiveRisingFlag = READ_BIT(EXTI->RPR1, enabledRisingTrig);
+    
+    // Clean the active flags
+    LL_EXTI_ClearFallingFlag_0_31(isActiveFallingFlag);
+    LL_EXTI_ClearRisingFlag_0_31(isActiveRisingFlag);
+    
+    // Call callbacks for each trigged lines/pins from 2 to 3
+    mp_gpio_trigger_t trigger;
+    
+    // Call callbacks for line/pin 2
+    trigger  = (isActiveFallingFlag >> 2) & MP_GPIO_TRIGGER_FALLING;
+    trigger |= (isActiveRisingFlag >> 1) & MP_GPIO_TRIGGER_RISING;
+    if (trigger)
+        _mp_gpio_port_extix_callback[2](trigger);
+    
+    // Call callbacks for line/pin 3
+    trigger  = (isActiveFallingFlag >> 3) & MP_GPIO_TRIGGER_FALLING;
+    trigger |= (isActiveRisingFlag >> 2) & MP_GPIO_TRIGGER_RISING;
+    if (trigger)
+        _mp_gpio_port_extix_callback[3](trigger);
+}
+
+__attribute__((always_inline))
+static inline void mp_gpio_port_0_1_handler()
+{   
+    // Get the enabled triggers. See LL_EXTI_IsEnabledFallingTrig_0_31() and 
+    // LL_EXTI_IsEnabledRisingTrig_0_31()
+    // Note: 0x00000003 is mask from LL_EXTI_LINE_0 to LL_EXTI_LINE_1
+    uint32_t enabledFallingTrig = READ_BIT(EXTI->FTSR1, 0x00000003);
+    uint32_t enabledRisingTrig = READ_BIT(EXTI->RTSR1, 0x00000003);
+    
+    // Get the actives flags. See LL_EXTI_IsActiveFallingFlag_0_31() and
+    // LL_EXTI_IsActiveRisingFlag_0_31()
+    uint32_t isActiveFallingFlag = READ_BIT(EXTI->FPR1, enabledFallingTrig);
+    uint32_t isActiveRisingFlag = READ_BIT(EXTI->RPR1, enabledRisingTrig);
+    
+    // Clean the active flags
+    LL_EXTI_ClearFallingFlag_0_31(isActiveFallingFlag);
+    LL_EXTI_ClearRisingFlag_0_31(isActiveRisingFlag);
+    
+    // Call callbacks for each trigged lines/pins from 0 to 1
+    mp_gpio_trigger_t trigger;
+    
+    // Call callbacks for line/pin 0
+    trigger  =  isActiveFallingFlag & MP_GPIO_TRIGGER_FALLING;
+    trigger |= (isActiveRisingFlag << 1) & MP_GPIO_TRIGGER_RISING;
+    if (trigger)
+        _mp_gpio_port_extix_callback[0](trigger);
+    
+    // Call callbacks for line/pin 1
+    trigger  = (isActiveFallingFlag >> 1) & MP_GPIO_TRIGGER_FALLING;
+    trigger |=  isActiveRisingFlag & MP_GPIO_TRIGGER_RISING;
+    if (trigger)
+        _mp_gpio_port_extix_callback[1](trigger);
 }
 
 #endif // MP_GPIO_PORT_H

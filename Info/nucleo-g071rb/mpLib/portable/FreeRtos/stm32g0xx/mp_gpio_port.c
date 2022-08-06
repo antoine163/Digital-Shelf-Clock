@@ -26,66 +26,37 @@
 #include "mp/drivers/gpio.h"
 
 // Protected global variables --------------------------------------------------
-void (*_mp_port_gpio_extix_callback[16])(mp_gpio_trigger_t) = {NULL};
+void (*_mp_gpio_port_extix_callback[16])(mp_gpio_trigger_t) = {NULL};
 
 // Implemented functions -------------------------------------------------------
-int mp_port_gpio_init(mp_device_id_t devid)
+
+int mp_gpio_port_init(mp_device_id_t devid)
 {
-    (void)devid;
-    //dev->gpiox = pripheral;
-    //_mp_gpio_init_table( (mp_gpio_t * const)dev );
+    _mp_gpio_init_table(devid);
+    MP_DEVICE_GET(devid)->isInit = 1;
     return 0;
 }
 
-int mp_port_gpio_deinit(mp_device_id_t devid)
+int mp_gpio_port_deinit(mp_device_id_t devid)
 {
     (void)devid;
-    //_mp_gpio_deinit_table( (mp_gpio_t * const)dev );
+    _mp_gpio_deinit_table(devid);
+    MP_DEVICE_GET(devid)->isInit = 0;
     return 0;
 }
 
-int mp_port_gpio_enableIt(  mp_device_id_t devid, unsigned int pinmask,
-                            mp_gpio_trigger_t trigger,
-                            void (*callback)(mp_gpio_trigger_t))
-{  
-    if (LL_EXTI_IsEnabledIT_0_31((uint32_t)pinmask))
-        return -1;
-    
-    // Compute the port value from gpio base
-    // - The port match with the Port argument of LL_EXTI_SetEXTISource().
-    // - The gpio base match with GPIOx_BASE (with x = A, B, C, D, E or F).
-    mp_gpio_port_t * dev = (mp_gpio_port_t *)mp_device_get(devid);
-    uint32_t port = ( ( (uint32_t)dev->gpiox) >> 10 ) & 0x7;
-            
-    // Find the pin number from pinmask to configure external interruption
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        if ((unsigned int)(1<<i) == pinmask)
-        {
-            _mp_port_gpio_extix_callback[i] = callback;
-
-            // Configure source input for the EXTI external interrupt.
-            // See LL_EXTI_SetEXTISource()
-            uint32_t clearmask = 0xff << (i & 0x03);
-            uint32_t setmask = port << (i & 0x03);
-            MODIFY_REG(EXTI->EXTICR[i>>2], clearmask, setmask);
-            
-            if (trigger & MP_GPIO_TRIGGER_FALLING)
-                LL_EXTI_EnableFallingTrig_0_31((uint32_t)pinmask);
-            if (trigger & MP_GPIO_TRIGGER_RISING)
-                LL_EXTI_EnableRisingTrig_0_31((uint32_t)pinmask);
-            
-            LL_EXTI_EnableIT_0_31((uint32_t)pinmask);
-            return 0;
-        }
-    }
-    
-    return -1;
-}
-
-
-// Todo a deplaser dans la table des IT
+// Todo: a deplaser dans la table des IT
 void EXTI4_15_IRQHandler()
 {
-    mp_port_gpio4_15_handler();
+    mp_gpio_port_4_15_handler();
+}
+
+void EXTI2_3_IRQHandler()
+{
+    mp_gpio_port_2_3_handler();
+}
+
+void EXTI0_1_IRQHandler()
+{
+    mp_gpio_port_0_1_handler();
 }

@@ -37,9 +37,9 @@
 
 // Define macro ----------------------------------------------------------------
 #define _MP_GPIO_PIN_TO_MASK(pin) (1<<pin) |
-#define MP_GPIO_PIN(device, pin, ...)                                  \
-    /* Device  */                                                      \
-    device,                                                            \
+#define MP_GPIO_PIN(devid, pin, ...)                                   \
+    /* Device id  */                                                   \
+    devid,                                                             \
     /* Build mask from all pins  */                                    \
     EVAL(MAP(_MP_GPIO_PIN_TO_MASK, pin, __VA_ARGS__)) 0
 
@@ -51,11 +51,8 @@
 #define MP_GPIO_LEVEL_1         0xffffffff
 #define MP_GPIO_LEVEL_MASK(level)    level
 
-// Structure -------------------------------------------------------------------
-typedef struct
-{
-    mp_device_t device_parent;
-} mp_gpio_t;
+// Protected define macro ------------------------------------------------------
+#define _MP_GPIO_EXTRACT_DEVID(devid, pinmask)    devid
 
 // Enum ------------------------------------------------------------------------
 typedef enum
@@ -74,13 +71,17 @@ typedef enum
 
 typedef enum
 {
+    MP_GPIO_TRIGGER_UNKNOWN             = 0x00,
     MP_GPIO_TRIGGER_FALLING             = 0x01,
     MP_GPIO_TRIGGER_RISING              = 0x02,
     MP_GPIO_TRIGGER_FALLING_AND_RISING  = 0x03
 }mp_gpio_trigger_t;
 
-// Protected define macro ------------------------------------------------------
-#define _MP_GPIO_EXTRACT_DEVICE(device, pinmask)    device
+// Structure -------------------------------------------------------------------
+typedef struct
+{
+    mp_device_t device_parent;
+} mp_gpio_t;
 
 // Include ---------------------------------------------------------------------
 #include "mpDevicesTable.h"
@@ -100,55 +101,47 @@ typedef enum
 // Public static 'virtual' functions -------------------------------------------
 
 // Define all device macro to empty.
-// Note: Only MP_DEV_GPIO will be redefine in this file.
+// Note: Only MP_DEV_GPIO will be redefine in this file for each functions.
 #include "mp_def_empty_dev.h"
-#if 0 //--------------------------------------------------------------------------------------------------------------------
-//__attribute__((always_inline))
+
 static inline int mp_gpio_init(mp_device_id_t devid)
 {
     int ret = -1;
-        
+
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_init(                             \
-                (mp_##driver##_gpio_t *)dev/*, peripheral*/);          \
+            ret = mp_gpio_##driver##_init(devid);                      \
         }
     
     if(0){}
     MP_DEVICES_TABLE
     
-    if ( ret >= 0 )
-        MP_DEVICE(dev)->isInit = 1;
-    
     return ret;
 }
 
-//__attribute__((always_inline))
+// Warning: mp_gpio_deinit() ne desctive pas les IT dégà activer. Il faut au 
+// prealable les desactiver avec mp_gpio_disableIt() evant d'apeler
+// mp_gpio_deinit()
 static inline int mp_gpio_deinit(mp_device_id_t devid)
 {
     int ret = -1;
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_deinit(                           \
-                (mp_##driver##_gpio_t *)dev);                          \
+            ret = mp_gpio_##driver##_deinit(devid);                    \
         }
     
     if(0){}
     MP_DEVICES_TABLE
     
-    if ( ret >= 0 )
-        MP_DEVICE(dev)->isInit = 0;
-        
     return ret;
 }
 
-//__attribute__((always_inline))
-static inline int mp_gpio_output(mp_device_id_t devid,   unsigned int pinmask,
+static inline int mp_gpio_output(mp_device_id_t devid,  unsigned int pinmask,
                                                         mp_gpio_type_t type, 
                                                         mp_gpio_pull_t pull, 
                                                         unsigned int level)
@@ -157,11 +150,10 @@ static inline int mp_gpio_output(mp_device_id_t devid,   unsigned int pinmask,
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_output(                           \
-                (mp_##driver##_gpio_t *)dev, pinmask,                  \
-                type, pull, level);                                    \
+            ret = mp_gpio_##driver##_output(devid, pinmask,            \
+                                            type, pull, level);        \
         }
     
     if(0){}
@@ -170,18 +162,16 @@ static inline int mp_gpio_output(mp_device_id_t devid,   unsigned int pinmask,
     return ret;
 }
 
-//__attribute__((always_inline))
-static inline int mp_gpio_input(mp_device_id_t devid,    unsigned int pinmask,
-                                                    mp_gpio_pull_t pull)
+static inline int mp_gpio_input(mp_device_id_t devid,   unsigned int pinmask,
+                                                        mp_gpio_pull_t pull)
 {
     int ret = -1;
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_input(                            \
-                (mp_##driver##_gpio_t *)dev, pinmask, pull);           \
+            ret = mp_gpio_##driver##_input(devid, pinmask, pull);      \
         }
     
     if(0){}
@@ -190,17 +180,15 @@ static inline int mp_gpio_input(mp_device_id_t devid,    unsigned int pinmask,
     return ret;
 }
 
-//__attribute__((always_inline))
 static inline int mp_gpio_default(mp_device_id_t devid, unsigned int pinmask)
 {
     int ret = -1;
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_default(                          \
-                (mp_##driver##_gpio_t *)dev, pinmask);                 \
+            ret = mp_gpio_##driver##_default(devid, pinmask);          \
         }
     
     if(0){}
@@ -209,18 +197,16 @@ static inline int mp_gpio_default(mp_device_id_t devid, unsigned int pinmask)
     return ret;
 }
 
-//__attribute__((always_inline))
-static inline int mp_gpio_setLevel(mp_device_id_t devid, unsigned int pinmask,
-                                                    unsigned int level)
+static inline int mp_gpio_setLevel(mp_device_id_t devid,    unsigned int pinmask,
+                                                            unsigned int level)
 {
     int ret = -1;
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_setLevel(                         \
-                (mp_##driver##_gpio_t *)dev, pinmask, level);          \
+            ret = mp_gpio_##driver##_setLevel(devid, pinmask, level);  \
         }
     
     if(0){}
@@ -230,7 +216,6 @@ static inline int mp_gpio_setLevel(mp_device_id_t devid, unsigned int pinmask,
 }
 //TODO fair mp_gpio_getInLevel
 //TODO fair mp_gpio_getOutLevel
-//__attribute__((always_inline))
 static inline int mp_gpio_getLevel(mp_device_id_t devid, unsigned int pinmask,
                                                 unsigned int * level)
 {
@@ -238,10 +223,9 @@ static inline int mp_gpio_getLevel(mp_device_id_t devid, unsigned int pinmask,
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_getLevel(                         \
-                (mp_##driver##_gpio_t *)dev, pinmask, level);          \
+            ret = mp_gpio_##driver##_getLevel(devid, pinmask, level);  \
         }
     
     if(0){}
@@ -250,7 +234,6 @@ static inline int mp_gpio_getLevel(mp_device_id_t devid, unsigned int pinmask,
     return ret;
 }
 
-//__attribute__((always_inline))
 static inline int mp_gpio_ctl(mp_device_id_t devid,  unsigned int pinmask,
                                                 int request, ...)
 {
@@ -260,10 +243,9 @@ static inline int mp_gpio_ctl(mp_device_id_t devid,  unsigned int pinmask,
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_ctl(                              \
-                (mp_##driver##_gpio_t *)dev, pinmask, request, ap);    \
+            ret = mp_gpio_##driver##_ctl(devid, pinmask, request, ap); \
         }
     
     if(0){}
@@ -273,17 +255,15 @@ static inline int mp_gpio_ctl(mp_device_id_t devid,  unsigned int pinmask,
     return ret;
 }
 
-//__attribute__((always_inline))
 static inline int mp_gpio_down(mp_device_id_t devid, unsigned int pinmask)
 {
     int ret = -1;
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_down(                             \
-                (mp_##driver##_gpio_t *)dev, pinmask);                 \
+            ret = mp_gpio_##driver##_down(devid, pinmask);             \
         }
     
     if(0){}
@@ -291,8 +271,7 @@ static inline int mp_gpio_down(mp_device_id_t devid, unsigned int pinmask)
     
     return ret;
 }
-# endif //--------------------------------------------------------------------------------------------------------------------
-//__attribute__((always_inline))
+
  static inline int mp_gpio_up(mp_device_id_t devid, unsigned int pinmask)
 {
     int ret = -1;
@@ -301,7 +280,7 @@ static inline int mp_gpio_down(mp_device_id_t devid, unsigned int pinmask)
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
         else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_up(devid, pinmask);               \
+            ret = mp_gpio_##driver##_up(devid, pinmask);               \
         }
     
     if(0){}
@@ -309,18 +288,16 @@ static inline int mp_gpio_down(mp_device_id_t devid, unsigned int pinmask)
 
     return ret;
 }
-# if 0 //--------------------------------------------------------------------------------------------------------------------
-//__attribute__((always_inline))
+
 static inline int mp_gpio_toggle(mp_device_id_t devid, unsigned int pinmask)
 {
     int ret = -1;
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_toggle(                           \
-                (mp_##driver##_gpio_t *)dev, pinmask);                 \
+            ret = mp_gpio_##driver##_toggle(devid, pinmask);           \
         }
     
     if(0){}
@@ -329,12 +306,9 @@ static inline int mp_gpio_toggle(mp_device_id_t devid, unsigned int pinmask)
     return ret;
 }
 
-#endif //--------------------------------------------------------------------------------------------------------------------
-//int mpfc_gpio_enableIt( mp_device_id_t devid, unsigned int pinmask,
-                                    //mp_gpio_trigger_t trigger,
-                                    //void (*callback)(mp_gpio_trigger_t));
-
-//__attribute__((always_inline))
+// Note: mp_gpio_deinit() ne desctive pas les IT dégà activer. Il faut au 
+// prealable les desactiver avec mp_gpio_disableIt() evant d'apeler
+// mp_gpio_deinit()
 static inline int mp_gpio_enableIt( mp_device_id_t devid, unsigned int pinmask,
                                     mp_gpio_trigger_t trigger,
                                     void (*callback)(mp_gpio_trigger_t))
@@ -345,7 +319,7 @@ static inline int mp_gpio_enableIt( mp_device_id_t devid, unsigned int pinmask,
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
         else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_enableIt(                         \
+            ret = mp_gpio_##driver##_enableIt(                         \
                 devid, pinmask, trigger, callback);                    \
         }
     
@@ -355,19 +329,15 @@ static inline int mp_gpio_enableIt( mp_device_id_t devid, unsigned int pinmask,
     return ret;
 }
 
-# if 0 //--------------------------------------------------------------------------------------------------------------------
-
-////__attribute__((always_inline))
 static inline int mp_gpio_disableIt(mp_device_id_t devid, unsigned int pinmask)
 {
     int ret = -1;
     
     #undef MP_DEV_GPIO
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
-        else if (dev == device)                                        \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_##driver##_gpio_disableIt(                        \
-                (mp_##driver##_gpio_t *)dev, pinmask);                 \
+            ret = mp_gpio_##driver##_disableIt(devid, pinmask);        \
         }
     
     if(0){}
@@ -377,10 +347,10 @@ static inline int mp_gpio_disableIt(mp_device_id_t devid, unsigned int pinmask)
 }
 
 // Public static functions -----------------------------------------------------
-static inline int mp_gpio_setValue(mp_device_id_t devid, unsigned int pinmask,
-                                                    unsigned int value)
+static inline int mp_gpio_setValue(mp_device_id_t devid,    unsigned int pinmask,
+                                                            unsigned int value)
 {
-    return mp_gpio_setLevel(dev, pinmask, value ? pinmask : 0);
+    return mp_gpio_setLevel(devid, pinmask, value ? pinmask : 0);
 }
 
 static inline int mp_gpio_getValue(mp_device_id_t devid, unsigned int pinmask)
@@ -388,7 +358,7 @@ static inline int mp_gpio_getValue(mp_device_id_t devid, unsigned int pinmask)
     unsigned int value;
     int ret = -1;
     
-    ret = mp_gpio_getLevel(dev, pinmask, &value);
+    ret = mp_gpio_getLevel(devid, pinmask, &value);
     
     if (ret >= 0)
     {
@@ -403,17 +373,17 @@ static inline void _mp_gpio_init_table(mp_device_id_t devid)
 {
 #ifdef MP_GPIO_TABLE
     #define MP_GPIO_OUT(gpio, type, pull, level)                       \
-        if (_MP_GPIO_EXTRACT_DEVICE(gpio) == dev)                      \
+        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
         {                                                              \
             mp_gpio_output(gpio,    MP_GPIO_TYPE_##type,               \
                                     MP_GPIO_PULL_##pull,               \
                                     MP_GPIO_LEVEL_##level);            \
         }
     #define MP_GPIO_IN(gpio, pull)                                     \
-        if (_MP_GPIO_EXTRACT_DEVICE(gpio) == dev)                      \
+        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
         {                                                              \
             mp_gpio_input(gpio, MP_GPIO_PULL_##pull);                  \
-        }                                                              \
+        }
 
     MP_GPIO_TABLE
     
@@ -426,15 +396,15 @@ static inline void _mp_gpio_deinit_table(mp_device_id_t devid)
 {
 #ifdef MP_GPIO_TABLE
     #define MP_GPIO_OUT(gpio, type, pull, level)                       \
-        if (_MP_GPIO_EXTRACT_DEVICE(gpio) == dev)                      \
+        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
         {                                                              \
             mp_gpio_default(gpio);                                     \
         }
     #define MP_GPIO_IN(gpio, pull)                                     \
-        if (_MP_GPIO_EXTRACT_DEVICE(gpio) == dev)                      \
+        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
         {                                                              \
             mp_gpio_default(gpio);                                     \
-        }                                                              \
+        }
 
     MP_GPIO_TABLE
     
@@ -442,6 +412,5 @@ static inline void _mp_gpio_deinit_table(mp_device_id_t devid)
     #undef MP_GPIO_IN
 #endif
 }
-#endif
 
 #endif // MP_DRIVER_GPIO_H
