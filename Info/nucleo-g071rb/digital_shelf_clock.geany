@@ -28,17 +28,20 @@ long_line_behaviour=2
 long_line_column=80
 
 [files]
-current_page=3
-FILE_NAME_0=3758;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Ftasks%2Ftask_test.c;0;4
-FILE_NAME_1=1742;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpDevicesTable.h;0;4
-FILE_NAME_2=3471;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpHardMap.h;0;4
-FILE_NAME_3=5524;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp%2Fdrivers%2Fgpio.h;0;4
-FILE_NAME_4=2808;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_gpio_port.h;0;4
-FILE_NAME_5=1786;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_gpio_port.c;0;4
-FILE_NAME_6=1391;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp.h;0;4
-FILE_NAME_7=2515;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fmp.c;0;4
-FILE_NAME_8=2332;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp_devices.h;0;4
-FILE_NAME_9=11385;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fdrivers%2FCMSIS_5%2FCMSIS%2FCore%2FInclude%2Fcmsis_gcc.h;0;2
+current_page=12
+FILE_NAME_0=957;Make;0;EUTF-8;1;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FMakefile;0;4
+FILE_NAME_1=1472;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Fmain.c;0;4
+FILE_NAME_2=3725;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Ftasks%2Ftask_test.c;0;4
+FILE_NAME_3=1742;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpDevicesTable.h;0;4
+FILE_NAME_4=1779;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpHardMap.h;0;4
+FILE_NAME_5=12787;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp%2Fdrivers%2Fgpio.h;0;4
+FILE_NAME_6=1490;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_gpio_port.h;0;4
+FILE_NAME_7=2083;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_gpio_port.c;0;4
+FILE_NAME_8=1391;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp.h;0;4
+FILE_NAME_9=2515;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fmp.c;0;4
+FILE_NAME_10=2332;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp_devices.h;0;4
+FILE_NAME_11=3292;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_uart_port.c;0;4
+FILE_NAME_12=1905;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Fboard%2Fnucleo_g071x.c;0;4
 
 [VTE]
 last_dir=/home/antoine/Projects/Digital-Shelf-Clock/Info/nucleo-g071rb

@@ -55,8 +55,8 @@ void boardInit()
     _systemClock_Config();
     LL_Init1msTick(SystemCoreClock);
     
-    // Enable clock for all gpio
-    LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_ALL);
+    //// Enable clock for all gpio
+    //LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_ALL);
     
     ///* -2- Connect External Line to the GPIO*/
     //LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTC, LL_EXTI_CONFIG_LINE13);

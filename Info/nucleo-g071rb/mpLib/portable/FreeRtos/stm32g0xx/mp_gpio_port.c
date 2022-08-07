@@ -24,6 +24,7 @@
 
 // Include ---------------------------------------------------------------------
 #include "mp/drivers/gpio.h"
+#include "stm32g0xx_ll_bus.h"
 
 // Protected global variables --------------------------------------------------
 void (*_mp_gpio_port_extix_callback[16])(mp_gpio_trigger_t) = {NULL};
@@ -32,6 +33,30 @@ void (*_mp_gpio_port_extix_callback[16])(mp_gpio_trigger_t) = {NULL};
 
 int mp_gpio_port_init(mp_device_id_t devid)
 {
+    // Enable clock gpio
+    GPIO_TypeDef * gpiox = MP_PORT_GPIO_GET(devid)->gpiox;
+    uint32_t periphs = 0;
+    if (gpiox == GPIOA)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOA;
+    else if (gpiox == GPIOB)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOB;
+    else if (gpiox == GPIOC)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOC;
+    else if (gpiox == GPIOD)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOD;
+    
+    #ifdef GPIOE
+    else if (gpiox == GPIOE)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOE;
+    #endif
+    
+    #ifdef GPIOE
+    else if (gpiox == GPIOF)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOF;
+    #endif
+
+    LL_IOP_GRP1_EnableClock(periphs);
+    
     _mp_gpio_init_table(devid);
     MP_DEVICE_GET(devid)->isInit = 1;
     return 0;
