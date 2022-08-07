@@ -40,42 +40,6 @@
 
 
 #define AFF_7SEG            MP_GPIO_PIN(dev_gpioc, 0, 1, 2, 3, 4, 5, 6, 10)
-//#define AFF_7SEG_A          MP_GPIO_PIN(dev_gpioc, 0)
-//#define AFF_7SEG_B          MP_GPIO_PIN(dev_gpioc, 1)
-//#define AFF_7SEG_C          MP_GPIO_PIN(dev_gpioc, 2)
-//#define AFF_7SEG_D          MP_GPIO_PIN(dev_gpioc, 3)
-//#define AFF_7SEG_E          MP_GPIO_PIN(dev_gpioc, 4)
-//#define AFF_7SEG_F          MP_GPIO_PIN(dev_gpioc, 5)
-//#define AFF_7SEG_G          MP_GPIO_PIN(dev_gpioc, 6)
-//#define AFF_7SEG_DP         MP_GPIO_PIN(dev_gpioc, 10)
-
-/**
- * @brief Table of GPIO
- * 
- * type :
- * - PUSH_PULL (@ref MP_GPIO_TYPE_PUSH_PULL)
- * - OPEN_DRAIN (@ref MP_GPIO_TYPE_OPEN_DRAIN)
- * - OPEN_SOURCE (@ref MP_GPIO_TYPE_OPEN_SOURCE)
- * 
- * pull :
- * - NO (@ref MP_GPIO_PULL_NO)
- * - PULL_UP (@ref MP_GPIO_PULL_UP)
- * - PULL_DOWN (@ref MP_GPIO_PULL_DOWN)
- * 
- */
-#define MP_GPIO_TABLE                                                  \
-/* GPIO OUT:    name,           type,       pull,   default level    */\
-    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     1)                 \
-    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     1)                 \
-    MP_GPIO_OUT(PIN_LED_GREEN,  PUSH_PULL,  NO,     HIGH)              \
-    MP_GPIO_OUT(PIN_LED_YELLOW, PUSH_PULL,  NO,     HIGH)              \
-/* AFF_7SEG                                                          */\
-    MP_GPIO_OUT(AFF_7SEG,       PUSH_PULL,  NO,     MASK(0x7f))        \
-/* GPIO IN:     name,                       pull                     */\
-    MP_GPIO_IN( BP1,                        NO)                        \
-    MP_GPIO_IN( BP2,                        UP)                        \
-    MP_GPIO_IN( PIN_BP_LED,                 UP)
-
 
 
 #if 0

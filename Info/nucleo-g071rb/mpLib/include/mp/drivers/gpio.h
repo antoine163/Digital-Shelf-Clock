@@ -51,8 +51,13 @@
 #define MP_GPIO_LEVEL_1         0xffffffff
 #define MP_GPIO_LEVEL_MASK(level)    level
 
-// Protected define macro ------------------------------------------------------
-#define _MP_GPIO_EXTRACT_DEVID(devid, pinmask)    devid
+#define MP_GPIO_OUT(gpio, type, pull, level)                           \
+        mp_gpio_output(gpio,    MP_GPIO_TYPE_##type,                   \
+                                MP_GPIO_PULL_##pull,                   \
+                                MP_GPIO_LEVEL_##level)
+                                
+#define MP_GPIO_IN(gpio, pull)                                         \
+        mp_gpio_input(gpio, MP_GPIO_PULL_##pull)
 
 // Enum ------------------------------------------------------------------------
 typedef enum
@@ -368,49 +373,5 @@ static inline int mp_gpio_getValue(mp_device_id_t devid, unsigned int pinmask)
     return ret;
 }
 
-// Protected static functions --------------------------------------------------
-static inline void _mp_gpio_init_table(mp_device_id_t devid)
-{
-#ifdef MP_GPIO_TABLE
-    #define MP_GPIO_OUT(gpio, type, pull, level)                       \
-        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
-        {                                                              \
-            mp_gpio_output(gpio,    MP_GPIO_TYPE_##type,               \
-                                    MP_GPIO_PULL_##pull,               \
-                                    MP_GPIO_LEVEL_##level);            \
-        }
-    #define MP_GPIO_IN(gpio, pull)                                     \
-        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
-        {                                                              \
-            mp_gpio_input(gpio, MP_GPIO_PULL_##pull);                  \
-        }
-
-    MP_GPIO_TABLE
-    
-    #undef MP_GPIO_OUT
-    #undef MP_GPIO_IN
-#endif
-}
-
-static inline void _mp_gpio_deinit_table(mp_device_id_t devid)
-{
-#ifdef MP_GPIO_TABLE
-    #define MP_GPIO_OUT(gpio, type, pull, level)                       \
-        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
-        {                                                              \
-            mp_gpio_default(gpio);                                     \
-        }
-    #define MP_GPIO_IN(gpio, pull)                                     \
-        if (_MP_GPIO_EXTRACT_DEVID(gpio) == devid)                     \
-        {                                                              \
-            mp_gpio_default(gpio);                                     \
-        }
-
-    MP_GPIO_TABLE
-    
-    #undef MP_GPIO_OUT
-    #undef MP_GPIO_IN
-#endif
-}
 
 #endif // MP_DRIVER_GPIO_H

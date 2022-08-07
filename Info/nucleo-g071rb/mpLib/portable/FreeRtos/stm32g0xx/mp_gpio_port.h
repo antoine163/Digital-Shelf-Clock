@@ -32,6 +32,7 @@
 
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_exti.h"
+#include "stm32g0xx_ll_bus.h"
 
 // Define macro ----------------------------------------------------------------
 #define MP_PORT_GPIO(dev)           ((mp_gpio_port_t *)dev)
@@ -48,14 +49,45 @@ typedef struct
 extern void (*_mp_gpio_port_extix_callback[16])(mp_gpio_trigger_t);
 
 // Prototype functions ---------------------------------------------------------
-int mp_gpio_port_init(mp_device_id_t devid);
-int mp_gpio_port_deinit(mp_device_id_t devid);
-
 static inline int mp_gpio_port_setLevel(mp_device_id_t devid,
                                         unsigned int pinmask,
                                         unsigned int level);
 
 // Static inline functions -----------------------------------------------------
+static inline int mp_gpio_port_init(mp_device_id_t devid)
+{
+    GPIO_TypeDef * gpiox = MP_PORT_GPIO_GET(devid)->gpiox;
+    uint32_t periphs = 0;
+    if (gpiox == GPIOA)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOA;
+    else if (gpiox == GPIOB)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOB;
+    else if (gpiox == GPIOC)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOC;
+    else if (gpiox == GPIOD)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOD;
+    
+    #ifdef GPIOE
+    else if (gpiox == GPIOE)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOE;
+    #endif
+    
+    #ifdef GPIOE
+    else if (gpiox == GPIOF)
+        periphs = LL_IOP_GRP1_PERIPH_GPIOF;
+    #endif
+
+    LL_IOP_GRP1_EnableClock(periphs);
+    MP_DEVICE_GET(devid)->isInit = 1;
+    return 0;
+}
+
+static inline int mp_gpio_port_deinit(mp_device_id_t devid)
+{
+    MP_DEVICE_GET(devid)->isInit = 0;
+    return 0;
+}
+
 static inline int mp_gpio_port_output(  mp_device_id_t devid,
                                         unsigned int pinmask,
                                         mp_gpio_type_t type, 

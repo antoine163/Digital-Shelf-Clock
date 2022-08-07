@@ -103,6 +103,19 @@ void task_test( void* pvParameters )
     mp_gpio_init(dev_gpiod);
     mp_gpio_init(dev_gpiof);
     
+    /* GPIO OUT:    name,           type,   pull,   default level             */
+    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     1);
+    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     1);
+    MP_GPIO_OUT(PIN_LED_GREEN,  PUSH_PULL,  NO,     HIGH);
+    MP_GPIO_OUT(PIN_LED_YELLOW, PUSH_PULL,  NO,     HIGH);
+    /* AFF_7SEG                                                               */
+    MP_GPIO_OUT(AFF_7SEG,       PUSH_PULL,  NO,     MASK(0x7f));
+    /* GPIO IN:     name,                   pull                              */
+    MP_GPIO_IN( BP1,                        NO);
+    MP_GPIO_IN( BP2,                        UP);
+    MP_GPIO_IN( PIN_BP_LED,                 UP);
+
+    
     NVIC_EnableIRQ(EXTI4_15_IRQn);
     NVIC_EnableIRQ(EXTI2_3_IRQn);
     
