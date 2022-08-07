@@ -314,9 +314,9 @@ static inline int mp_gpio_toggle(mp_device_id_t devid, unsigned int pinmask)
 // Note: mp_gpio_deinit() ne desctive pas les IT dégà activer. Il faut au 
 // prealable les desactiver avec mp_gpio_disableIt() evant d'apeler
 // mp_gpio_deinit()
-static inline int mp_gpio_enableIt( mp_device_id_t devid, unsigned int pinmask,
+static inline int mp_gpio_enableIsr(mp_device_id_t devid, unsigned int pinmask,
                                     mp_gpio_trigger_t trigger,
-                                    void (*callback)(mp_gpio_trigger_t))
+                                    void (*isr)(mp_gpio_trigger_t))
 {
     int ret = -1;
 
@@ -325,7 +325,7 @@ static inline int mp_gpio_enableIt( mp_device_id_t devid, unsigned int pinmask,
         else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
             ret = mp_gpio_##driver##_enableIt(                         \
-                devid, pinmask, trigger, callback);                    \
+                devid, pinmask, trigger, isr);                         \
         }
     
     if(0){}
@@ -334,7 +334,7 @@ static inline int mp_gpio_enableIt( mp_device_id_t devid, unsigned int pinmask,
     return ret;
 }
 
-static inline int mp_gpio_disableIt(mp_device_id_t devid, unsigned int pinmask)
+static inline int mp_gpio_disableIsr(mp_device_id_t devid, unsigned int pinmask)
 {
     int ret = -1;
     
@@ -342,7 +342,7 @@ static inline int mp_gpio_disableIt(mp_device_id_t devid, unsigned int pinmask)
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
         else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_GPIO_##driver)\
         {                                                              \
-            ret = mp_gpio_##driver##_disableIt(devid, pinmask);        \
+            ret = mp_gpio_##driver##_disableIsr(devid, pinmask);       \
         }
     
     if(0){}

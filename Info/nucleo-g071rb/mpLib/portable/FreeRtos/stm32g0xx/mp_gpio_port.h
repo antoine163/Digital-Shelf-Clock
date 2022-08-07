@@ -46,7 +46,7 @@ typedef struct
 }mp_gpio_port_t;
 
 // Extern protected global variables -------------------------------------------
-extern void (*_mp_gpio_port_extix_callback[16])(mp_gpio_trigger_t);
+extern void (*_mp_gpio_port_extix_isr[16])(mp_gpio_trigger_t);
 
 // Prototype functions ---------------------------------------------------------
 static inline int mp_gpio_port_setLevel(mp_device_id_t devid,
@@ -333,7 +333,7 @@ static inline int mp_gpio_port_enableIt(mp_device_id_t devid,
     {
         if ((unsigned int)(1<<i) == pinmask)
         {
-            _mp_gpio_port_extix_callback[i] = callback;
+            _mp_gpio_port_extix_isr[i] = callback;
 
             // Configure source input for the EXTI external interrupt.
             // See LL_EXTI_SetEXTISource()
@@ -359,7 +359,7 @@ static inline int mp_gpio_port_enableIt(mp_device_id_t devid,
     return -1;
 }
 
-static inline int mp_gpio_port_disableIt(   mp_device_id_t devid,
+static inline int mp_gpio_port_disableIsr(  mp_device_id_t devid,
                                             unsigned int pinmask)
 {
     (void)devid;
@@ -397,7 +397,7 @@ static inline void mp_gpio_port_4_15_handler()
         trigger |= (isActiveRisingFlag >> i) & MP_GPIO_TRIGGER_RISING;
         
         if (trigger)
-            _mp_gpio_port_extix_callback[i+4](trigger);
+            _mp_gpio_port_extix_isr[i+4](trigger);
     }
 }
 
@@ -426,13 +426,13 @@ static inline void mp_gpio_port_2_3_handler()
     trigger  = (isActiveFallingFlag >> 2) & MP_GPIO_TRIGGER_FALLING;
     trigger |= (isActiveRisingFlag >> 1) & MP_GPIO_TRIGGER_RISING;
     if (trigger)
-        _mp_gpio_port_extix_callback[2](trigger);
+        _mp_gpio_port_extix_isr[2](trigger);
     
     // Call callbacks for line/pin 3
     trigger  = (isActiveFallingFlag >> 3) & MP_GPIO_TRIGGER_FALLING;
     trigger |= (isActiveRisingFlag >> 2) & MP_GPIO_TRIGGER_RISING;
     if (trigger)
-        _mp_gpio_port_extix_callback[3](trigger);
+        _mp_gpio_port_extix_isr[3](trigger);
 }
 
 __attribute__((always_inline))
@@ -460,13 +460,13 @@ static inline void mp_gpio_port_0_1_handler()
     trigger  =  isActiveFallingFlag & MP_GPIO_TRIGGER_FALLING;
     trigger |= (isActiveRisingFlag << 1) & MP_GPIO_TRIGGER_RISING;
     if (trigger)
-        _mp_gpio_port_extix_callback[0](trigger);
+        _mp_gpio_port_extix_isr[0](trigger);
     
     // Call callbacks for line/pin 1
     trigger  = (isActiveFallingFlag >> 1) & MP_GPIO_TRIGGER_FALLING;
     trigger |=  isActiveRisingFlag & MP_GPIO_TRIGGER_RISING;
     if (trigger)
-        _mp_gpio_port_extix_callback[1](trigger);
+        _mp_gpio_port_extix_isr[1](trigger);
 }
 
 #endif // MP_GPIO_PORT_H

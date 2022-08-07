@@ -44,7 +44,7 @@
 
 #if 0
 
-#define MP_HANDLER_TABLE                                               \
+#define MP_ISR_TABLE                                                   \
 /*              vector,             priority,   handler(s)           */\
     MP_HANDLER( USART1,             1,          mp_port_uart_handler(USART1))\
     MP_HANDLER( USART3_4_LPUART1,   1,          mp_port_uart_handler(USART3);\

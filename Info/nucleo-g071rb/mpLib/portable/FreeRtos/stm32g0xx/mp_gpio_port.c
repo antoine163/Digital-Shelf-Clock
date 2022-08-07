@@ -26,7 +26,7 @@
 #include "mp/drivers/gpio.h"
 
 // Protected global variables --------------------------------------------------
-void (*_mp_gpio_port_extix_callback[16])(mp_gpio_trigger_t) = {NULL};
+void (*_mp_gpio_port_extix_isr[16])(mp_gpio_trigger_t) = {NULL};
 
 // Implemented functions -------------------------------------------------------
 

@@ -121,9 +121,9 @@ void task_test( void* pvParameters )
     
     // grep "<mp[^ ]*>:" digital_shelf_clock.lss
     // rm-none-eabi-readelf digital_shelf_clock.elf -wi > /tmp/readelf
-    mp_gpio_enableIt(BP1, MP_GPIO_TRIGGER_FALLING, bp1Handler);
-    mp_gpio_enableIt(BP2, MP_GPIO_TRIGGER_FALLING, bp2Handler);
-    mp_gpio_enableIt(PIN_BP_LED, MP_GPIO_TRIGGER_RISING, bpLedHandler);
+    mp_gpio_enableIsr(BP1, MP_GPIO_TRIGGER_FALLING, bp1Handler);
+    mp_gpio_enableIsr(BP2, MP_GPIO_TRIGGER_FALLING, bp2Handler);
+    mp_gpio_enableIsr(PIN_BP_LED, MP_GPIO_TRIGGER_RISING, bpLedHandler);
 
     
 #if 1
