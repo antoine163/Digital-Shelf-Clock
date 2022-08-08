@@ -32,9 +32,9 @@
 // Include ---------------------------------------------------------------------
 
 // Include all drivers
-#include "mp/drivers/gpio.h"
 #include "mp/drivers/interrupt.h"
-//#include "mp/drivers/uart.h"
+#include "mp/drivers/gpio.h"
+#include "mp/drivers/uart.h"
 //#include "mp/drivers/adc.h"
 //#include "mp/drivers/spi.h"
 

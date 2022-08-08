@@ -67,20 +67,12 @@
         .gpiox = peripheral,                                           \
     };
 
-
-#if 0
 #define MP_DEV_UART(device, driver, peripheral)                        \
-    static mp_##driver##_uart_t _##device;                             \
-    mp_uart_t * const device = (mp_uart_t * const)&_##device;
-
-#define MP_DEV_ADC(device, driver, peripheral)                         \
-    static mp_##driver##_adc_t _##device;                              \
-    mp_adc_t * const device = (mp_adc_t * const)&_##device;
-
-#define MP_DEV_SPI(device, driver, peripheral)                         \
-    static mp_##driver##_spi_t _##device;                              \
-    mp_spi_t * const device = (mp_spi_t * const)&_##device;
-#endif
+    mp_uart_##driver##_t _##device =                                   \
+    {                                                                  \
+        .uart_parent.device_parent.devid = device,                     \
+        .uartx = peripheral,                                           \
+    };
 
 // Instantiate all devices
 MP_DEVICES_TABLE
@@ -94,6 +86,8 @@ MP_DEVICES_TABLE
 
 // Build table with all device pointer
 #define MP_DEV_GPIO(device, driver, peripheral)                        \
+    (mp_device_t * const)&_##device,
+#define MP_DEV_UART(device, driver, peripheral)                        \
     (mp_device_t * const)&_##device,
 
 mp_device_t * const _mp_devices_table[] = { MP_DEVICES_TABLE };

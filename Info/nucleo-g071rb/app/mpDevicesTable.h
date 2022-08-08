@@ -41,6 +41,7 @@
  * MP_DRV_SPI( device, driver, peripheral)
  */
 #define MP_DEVICES_TABLE                                               \
+    MP_DEV_UART(dev_tty,    port,       USART2)                        \
     MP_DEV_GPIO(dev_gpioa,  port,       GPIOA)                         \
     MP_DEV_GPIO(dev_gpiob,  port,       GPIOB)                         \
     MP_DEV_GPIO(dev_gpioc,  port,       GPIOC)                         \

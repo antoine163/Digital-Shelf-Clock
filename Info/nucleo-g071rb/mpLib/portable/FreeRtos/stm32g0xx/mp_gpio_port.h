@@ -30,6 +30,7 @@
 // Don't include "mp/drivers/gpio.h" here. It is "mp/drivers/gpio.h" which
 // include "mp_gpio_port.h" after to have declare enum, strucur, typdef, ...
 
+// St Low level
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_exti.h"
 #include "stm32g0xx_ll_bus.h"
@@ -369,6 +370,7 @@ static inline int mp_gpio_port_disableIsr(  mp_device_id_t devid,
     return 0;
 }
 
+// Static inline ISR -----------------------------------------------------------
 __attribute__((always_inline))
 static inline void mp_gpio_port_exti4_15_isr()
 {   

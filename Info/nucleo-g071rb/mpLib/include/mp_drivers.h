@@ -34,24 +34,25 @@
 #endif // MP_EX_DRIVER_HEADER
 
 // Define ----------------------------------------------------------------------
-// MP_DRIVER(<device type>_<driver>)
-// - <device type>: uppercase
+// MP_DRIVER(<type>_<driver>)
+// - <type>: uppercase
 // - <driver>: lowercase
 // eg: MP_DRIVER(GPIO_port)
 #define MP_DRIVER_TABLE                                                \
-    MP_DRIVER(GPIO, port)
+    MP_DRIVER(GPIO, port)                                              \
+    MP_DRIVER(UART, port)
 
 // enum ------------------------------------------------------------------------
 
 // Build drivers type id
 typedef enum
 {
-    #define MP_DRIVER(device_type, driver)                             \
-            MP_DRIVER_TYPE_##device_type##_##driver,
+    #define MP_DRIVER(type, driver)                                    \
+            MP_DRIVER_TYPE_##type##_##driver,
     
     // Extend drivers table with additional drivers unknown by mpLib
     #ifdef MP_ADD_DRIVERS_TABLE
-        #include MP_ADD_DRIVERS_TABLE
+        MP_ADD_DRIVERS_TABLE
     #endif // MP_ADD_DRIVERS_TABLE
 
     MP_DRIVER_TABLE

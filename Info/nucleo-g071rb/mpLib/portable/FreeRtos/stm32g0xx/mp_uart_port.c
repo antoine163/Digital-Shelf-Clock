@@ -35,14 +35,14 @@
 #include <string.h>
 
 // Protected global variables --------------------------------------------------
-mp_port_uart_t *_mp_stm_usart1_drv = NULL;
-mp_port_uart_t *_mp_stm_usart2_drv = NULL;
-mp_port_uart_t *_mp_stm_usart3_drv = NULL;
-mp_port_uart_t *_mp_stm_usart4_drv = NULL;
-mp_port_uart_t *_mp_stm_usart5_drv = NULL;
-mp_port_uart_t *_mp_stm_usart6_drv = NULL;
-mp_port_uart_t *_mp_stm_lpuart1_drv = NULL;
-mp_port_uart_t *_mp_stm_lpuart2_drv = NULL;
+mp_uart_port_t * _mp_uart_port_usart1_dev = NULL;
+mp_uart_port_t * _mp_uart_port_usart2_dev = NULL;
+mp_uart_port_t * _mp_uart_port_usart3_dev = NULL;
+mp_uart_port_t * _mp_uart_port_usart4_dev = NULL;
+mp_uart_port_t * _mp_uart_port_usart5_dev = NULL;
+mp_uart_port_t * _mp_uart_port_usart6_dev = NULL;
+mp_uart_port_t * _mp_uart_port_lpuart1_dev = NULL;
+mp_uart_port_t * _mp_uart_port_lpuart2_dev = NULL;
 
 // Implemented functions -------------------------------------------------------
 
@@ -102,14 +102,14 @@ mp_port_uart_t *_mp_stm_lpuart2_drv = NULL;
  * 
  * @warning The IRQ used here (ex: USART2_IRQn) must be enable...
  */
-int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev)
+int mp_uart_port_init(mp_device_id_t devid)
 {
-    memset(drv, 0, sizeof(mp_port_uart_t));
-    drv->dev = dev;
+    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
+    USART_TypeDef * uartx = dev->uartx;
     
     // Init GPIO of USART2
     #if defined(MP_USART2_RX_GPIO_Port) || defined(MP_USART2_TX_GPIO_Port)
-    if (dev == USART2)
+    if (uartx == USART2)
     {
         //#ifdef MP_USART2_RX_GPIO_Port
         //mp_gpio_config(drv_gpio, MP_USART2_RX)
@@ -144,7 +144,7 @@ int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev)
         // Enable IRQ
         //NVIC_SetPriority(USART2_IRQn, MP_USART2_IRQ_PRIORITY);
         //NVIC_SetPriority(USART2_IRQn, MP_USART2_IRQ_PRIORITY);
-        NVIC_EnableIRQ(USART2_IRQn);
+        //NVIC_EnableIRQ(USART2_IRQn);
         
         //mp_irq_enable(drv_irq, USART2);
         
@@ -155,7 +155,7 @@ int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev)
         LL_RCC_SetUSARTClockSource(MP_USART2_CLKSOURCE);
         
         // Set Usart2 pointer.
-        _mp_stm_usart2_drv = drv;
+        _mp_uart_port_usart2_dev = dev;
         
         #ifdef MP_USART2_RX_GPIO_Port
             // Enable RXNE and Error interrupts.
@@ -170,13 +170,13 @@ int mp_port_uart_init(mp_port_uart_t *drv,  USART_TypeDef *dev)
     return -1;
 }
 
-int mp_port_uart_deinit(mp_port_uart_t *drv)
+int mp_uart_port_deinit(mp_device_id_t devid)
 {
-    (void)drv;
+    (void)devid;
     return -1;
 }
 
-int mp_port_uart_config(mp_port_uart_t *drv,
+int mp_uart_port_config(mp_device_id_t devid,
                         mp_uart_baudrate_t baudrate,
                         mp_uart_databits_t databit,
                         mp_uart_parity_t parity,
@@ -187,6 +187,8 @@ int mp_port_uart_config(mp_port_uart_t *drv,
     (void)parity;
     (void)stopbit;
     
+    USART_TypeDef * uartx = MP_PORT_UART_GET(devid)->uartx;
+    
     /* (4) Configure USART functional parameters ********************************/
     
     /* Disable USART prior modifying configuration registers */
@@ -194,10 +196,10 @@ int mp_port_uart_config(mp_port_uart_t *drv,
     // LL_USART_Disable(drv->dev);
     
     /* TX/RX direction */
-    LL_USART_SetTransferDirection(drv->dev, LL_USART_DIRECTION_TX_RX);
+    LL_USART_SetTransferDirection(uartx, LL_USART_DIRECTION_TX_RX);
     
     /* 8 data bit, 1 start bit, 1 stop bit, no parity */
-    LL_USART_ConfigCharacter(drv->dev, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
+    LL_USART_ConfigCharacter(uartx, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
     
     /* No Hardware Flow control */
     /* Reset value is LL_USART_HWCONTROL_NONE */
@@ -214,49 +216,49 @@ int mp_port_uart_config(mp_port_uart_t *drv,
     
         In this example, Peripheral Clock is expected to be equal to 56000000 Hz => equal to SystemCoreClock
     */
-    LL_USART_SetBaudRate(drv->dev, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_16, (uint32_t)baudrate); 
+    LL_USART_SetBaudRate(uartx, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_16, (uint32_t)baudrate); 
     
     /* (5) Enable USART *********************************************************/
-    LL_USART_Enable(drv->dev);
+    LL_USART_Enable(uartx);
     
     /* Polling USART initialisation */
-    while ((!(LL_USART_IsActiveFlag_TEACK(drv->dev))) || (!(LL_USART_IsActiveFlag_REACK(drv->dev))))
+    while ((!(LL_USART_IsActiveFlag_TEACK(uartx))) || (!(LL_USART_IsActiveFlag_REACK(uartx))))
     { 
     }
     
     return 0;
 }
 
-int mp_port_uart_write(mp_port_uart_t *drv, const void *buf, size_t nbyte)
+int mp_uart_port_write(mp_device_id_t devid, const void *buf, size_t nbyte)
 {
-    (void)buf;
-    (void)nbyte;
+    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
+    USART_TypeDef * uartx = dev->uartx;
     
-    memcpy(drv->txBuf, buf, nbyte);
-    drv->lenSend = nbyte;
-    drv->iSend = 1;
+    memcpy(dev->txBuf, buf, nbyte);
+    dev->lenSend = nbyte;
+    dev->iSend = 1;
     
     /* Start USART transmission : Will initiate TXE interrupt after TDR register is empty */
-    LL_USART_TransmitData8(drv->dev, drv->txBuf[0]); 
+    LL_USART_TransmitData8(uartx, dev->txBuf[0]); 
 
     /* Enable TXE interrupt */
-    LL_USART_EnableIT_TXE(drv->dev); 
+    LL_USART_EnableIT_TXE(uartx); 
     
     return 0;
 }
 
-int mp_port_uart_read(mp_port_uart_t *drv, void *buf, size_t nbyte)
+int mp_uart_port_read(mp_device_id_t devid, void *buf, size_t nbyte)
 {
-    (void)drv;
+    (void)devid;
     (void)buf;
     (void)nbyte;
     
     return 0;
 }
 
-int mp_port_uart_ctl(mp_port_uart_t *drv, int request, va_list ap)
+int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap)
 {
-    (void)drv;
+    (void)devid;
     (void)request;
     (void)ap;
     

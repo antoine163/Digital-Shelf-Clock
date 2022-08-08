@@ -32,11 +32,11 @@
 //#include "task.h"
 
 //Driver from mpLib
-//#include "mp/drivers/uart.h"
+#include "mp/drivers/interrupt.h"
+#include "mp/drivers/gpio.h"
+#include "mp/drivers/uart.h"
 //#include "mp/drivers/adc.h"
 //#include "mp/drivers/spi.h"
-#include "mp/drivers/gpio.h"
-#include "mp/drivers/interrupt.h"
 
 //std
 #include <string.h>
@@ -120,6 +120,10 @@ void task_test( void* pvParameters )
     mp_gpio_enableIsr(BP1, MP_GPIO_TRIGGER_FALLING, bp1Handler);
     mp_gpio_enableIsr(BP2, MP_GPIO_TRIGGER_FALLING, bp2Handler);
     mp_gpio_enableIsr(PIN_BP_LED, MP_GPIO_TRIGGER_RISING, bpLedHandler);
+    
+    mp_uart_init(dev_tty);
+    mp_uart_config(dev_tty, 115200, 8, 0, 1);
+    mp_uart_printf(dev_tty, "nucleo-g071rb inisilised !\r\n");
 
     
 #if 1
@@ -149,6 +153,8 @@ void task_test( void* pvParameters )
         
         //mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
         mp_gpio_setLevel(AFF_7SEG, digit[cpt2]);
+        
+        mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u\r\n", cpt, cpt2);
         
         
         ////mp_adc_get_volatag(&drv_adc1, 0);

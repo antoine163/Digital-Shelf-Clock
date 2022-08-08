@@ -39,8 +39,7 @@
 #include "mp_undef_all_dev.h"
 
 // Define all device macro to empty
+#define MP_DEV_GPIO(device, driver, peripheral)
 #define MP_DEV_UART(device, driver, peripheral)
 #define MP_DEV_ADC(device, driver, peripheral)
 #define MP_DEV_SPI(device, driver, peripheral)
-#define MP_DEV_GPIO(device, driver, peripheral)
-

@@ -33,8 +33,8 @@
 #define MP_DEVICE(dev)           ((mp_device_t *)dev)
 #define MP_DEVICE_GET(devid)     mp_device_get(devid)
 
-#define MP_DEVICE_ID(dev)       ( dev & 0x0000ffff )
-#define MP_DEVICE_TYPE(dev)     ( dev & 0xffff0000 )
+#define MP_DEVICE_ID(devid)         ( devid & 0x0000ffff )
+#define MP_DEVICE_TYPE(devid)     ( ( devid & 0xffff0000 ) >> 16 )
 
 
 // Enum ------------------------------------------------------------------------
@@ -49,6 +49,13 @@ typedef enum
     #define MP_DEV_GPIO(device, driver, peripheral)                    \
         MP_DEVICE_ID_##device,                                         \
         device =    (MP_DRIVER_TYPE_GPIO_##driver << 16) |             \
+                    MP_DEVICE_ID_##device,                             \
+        _MP_DEVICE_ID_##device = MP_DEVICE_ID_##device,
+    
+    #undef MP_DEV_UART
+    #define MP_DEV_UART(device, driver, peripheral)                    \
+        MP_DEVICE_ID_##device,                                         \
+        device =    (MP_DRIVER_TYPE_UART_##driver << 16) |             \
                     MP_DEVICE_ID_##device,                             \
         _MP_DEVICE_ID_##device = MP_DEVICE_ID_##device,
     

@@ -44,26 +44,38 @@
 
 
 
+
+// Pin Mux USART2 ( dev_tty )
+#define MP_USART2_TX_GPIO_Port      GPIOA
+#define MP_USART2_TX_Pin            LL_GPIO_PIN_2
+#define MP_USART2_TX_AF             LL_GPIO_AF_1
+#define MP_USART2_TX_SPEED          LL_GPIO_SPEED_FREQ_HIGH
+#define MP_USART2_TX_PULL           LL_GPIO_PULL_UP
+#define MP_USART2_TX_OUTPUT         LL_GPIO_OUTPUT_PUSHPULL
+#define MP_USART2_TX_PIN_LEVEL      LL_USART_TXPIN_LEVEL_STANDARD
+
+#define MP_USART2_RX_GPIO_Port      GPIOA
+#define MP_USART2_RX_Pin            LL_GPIO_PIN_3
+#define MP_USART2_RX_SPEED          LL_GPIO_SPEED_FREQ_HIGH
+#define MP_USART2_RX_AF             LL_GPIO_AF_1
+#define MP_USART2_RX_PULL           LL_GPIO_PULL_UP
+#define MP_USART2_RX_PIN_LEVEL      LL_USART_RXPIN_LEVEL_STANDARD
+
+#define MP_USART2_CLKSOURCE         LL_RCC_USART2_CLKSOURCE_PCLK1
+#define MP_USART2_TXRX_SWAPPED      LL_USART_TXRX_STANDARD
+
+
+
+
+
+
+
 #define MP_INTERRUPT_TABLE                                             \
     /*      vector,           priority, handlers                     */\
+    MP_INT_ISR( USART2,       1,        mp_uart_port_usart2_isr())     \
     MP_INT_ISR( EXTI0_1,      1,        mp_gpio_port_exti0_1_isr())    \
     MP_INT_ISR( EXTI2_3,      1,        mp_gpio_port_exti2_3_isr())    \
     MP_INT_ISR( EXTI4_15,     1,        mp_gpio_port_exti4_15_isr())
     
-    
-#if 0
-
-#define MP_NVIC_ISR_TABLE                                              \
-    /*      vector,           priority, handlers                     */\
-    MP_ISR( USART1,           1,        mp_port_uart_isr(USART1))      \
-    MP_ISR( USART3_4_LPUART1, 1,        mp_port_uart_isr(USART3);      \
-                                        mp_port_uart_isr(USART4);      \
-                                        mp_port_uart_isr(LPUART1)      \
-    MP_ISR( USART2,           1,        mp_port_uart_isr(USART2))      \
-    MP_ISR( EXTI0_1,          1,        mp_gpio_port_exti0_1_isr())    \
-    MP_ISR( EXTI2_3,          1,        mp_gpio_port_exti2_3_isr())    \
-    MP_ISR( EXTI4_15,         1,        mp_gpio_port_exti4_15_isr())
-                                                
-#endif
 
 #endif // MP_HARD_MAP_H

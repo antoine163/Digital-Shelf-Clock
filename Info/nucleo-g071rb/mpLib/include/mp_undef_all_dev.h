@@ -36,8 +36,7 @@
 // Defines ---------------------------------------------------------------------
 
 // Undef all device macro
+#undef MP_DEV_GPIO
 #undef MP_DEV_UART
 #undef MP_DEV_ADC
 #undef MP_DEV_SPI
-#undef MP_DEV_GPIO
-
