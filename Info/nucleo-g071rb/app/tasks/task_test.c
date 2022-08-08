@@ -36,6 +36,7 @@
 //#include "mp/drivers/adc.h"
 //#include "mp/drivers/spi.h"
 #include "mp/drivers/gpio.h"
+#include "mp/drivers/interrupt.h"
 
 //std
 #include <string.h>
@@ -48,10 +49,6 @@
 #include "stm32g0xx_ll_utils.h"
 #include "stm32g0xx_ll_exti.h"
 volatile int cpt2=0;
-
-//extern mp_port_gpio_t _dev_gpioc; a supprimer dans gpio.h
-//extern mp_port_gpio_t _dev_gpioc;
-
 
 void bp1Handler(mp_gpio_trigger_t);
 void bp2Handler(mp_gpio_trigger_t);
@@ -116,8 +113,7 @@ void task_test( void* pvParameters )
     MP_GPIO_IN( PIN_BP_LED,                 UP);
 
     
-    NVIC_EnableIRQ(EXTI4_15_IRQn);
-    NVIC_EnableIRQ(EXTI2_3_IRQn);
+    mp_interrupt_init();
     
     // grep "<mp[^ ]*>:" digital_shelf_clock.lss
     // rm-none-eabi-readelf digital_shelf_clock.elf -wi > /tmp/readelf

@@ -23,9 +23,31 @@
  */
 
 // Include ---------------------------------------------------------------------
-#include "mp/drivers/gpio.h"
+#include "mp.h"
 
 // Protected global variables --------------------------------------------------
-void (*_mp_gpio_port_extix_isr[16])(mp_gpio_trigger_t) = {NULL};
 
 // Implemented functions -------------------------------------------------------
+int mp_interrupt_port_init()
+{
+    #define MP_INT_ISR(irq, priority, isr_imp)                         \
+        NVIC_SetPriority(irq##_IRQn, priority);                        \
+        NVIC_EnableIRQ(irq##_IRQn);
+        
+    MP_INTERRUPT_TABLE
+    #undef MP_INT_ISR
+
+    return 0;
+}
+
+
+
+#define MP_INT_ISR(irq, priority, isr_imp)                             \
+    void irq##_IRQHandler()                                            \
+    {                                                                  \
+        isr_imp;                                                       \
+    }
+    
+MP_INTERRUPT_TABLE
+#undef MP_INT_ISR
+

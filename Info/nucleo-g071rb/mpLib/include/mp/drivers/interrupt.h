@@ -22,7 +22,28 @@
  * SOFTWARE.
  */
 
-// Include ---------------------------------------------------------------------
-#include "mp/drivers/irq.h"
+#ifndef MP_INTERRUPT_H
+#define MP_INTERRUPT_H
 
-// Implemented functions -------------------------------------------------------
+// Include ---------------------------------------------------------------------
+#include "mp_interrupt_port.h"
+
+// Define macro ----------------------------------------------------------------
+
+// Enum ------------------------------------------------------------------------
+
+// Structure -------------------------------------------------------------------
+
+// Extern global variables -----------------------------------------------------
+
+// Public static 'virtual' functions -------------------------------------------
+static inline int mp_interrupt_init()
+{
+    return mp_interrupt_port_init();
+}
+
+// Public static functions -----------------------------------------------------
+
+
+
+#endif // MP_INTERRUPT_H

@@ -42,18 +42,27 @@
 #define AFF_7SEG            MP_GPIO_PIN(dev_gpioc, 0, 1, 2, 3, 4, 5, 6, 10)
 
 
+
+
+#define MP_INTERRUPT_TABLE                                             \
+    /*      vector,           priority, handlers                     */\
+    MP_INT_ISR( EXTI0_1,      1,        mp_gpio_port_exti0_1_isr())    \
+    MP_INT_ISR( EXTI2_3,      1,        mp_gpio_port_exti2_3_isr())    \
+    MP_INT_ISR( EXTI4_15,     1,        mp_gpio_port_exti4_15_isr())
+    
+    
 #if 0
 
-#define MP_ISR_TABLE                                                   \
-/*              vector,             priority,   handler(s)           */\
-    MP_HANDLER( USART1,             1,          mp_port_uart_handler(USART1))\
-    MP_HANDLER( USART3_4_LPUART1,   1,          mp_port_uart_handler(USART3);\
-                                                mp_port_uart_handler(USART4);\
-                                                mp_port_uart_handler(LPUART1)\
-    MP_HANDLER( USART2,             1,          mp_port_uart_handler(USART2))
-    MP_HANDLER( EXTI0_1,            1,          mp_gpio_port_0_1_handler())
-    MP_HANDLER( EXTI2_3,            1,          mp_gpio_port_2_3_handler())
-    MP_HANDLER( EXTI4_15,           1,          mp_gpio_port_4_15_handler())
+#define MP_NVIC_ISR_TABLE                                              \
+    /*      vector,           priority, handlers                     */\
+    MP_ISR( USART1,           1,        mp_port_uart_isr(USART1))      \
+    MP_ISR( USART3_4_LPUART1, 1,        mp_port_uart_isr(USART3);      \
+                                        mp_port_uart_isr(USART4);      \
+                                        mp_port_uart_isr(LPUART1)      \
+    MP_ISR( USART2,           1,        mp_port_uart_isr(USART2))      \
+    MP_ISR( EXTI0_1,          1,        mp_gpio_port_exti0_1_isr())    \
+    MP_ISR( EXTI2_3,          1,        mp_gpio_port_exti2_3_isr())    \
+    MP_ISR( EXTI4_15,         1,        mp_gpio_port_exti4_15_isr())
                                                 
 #endif
 

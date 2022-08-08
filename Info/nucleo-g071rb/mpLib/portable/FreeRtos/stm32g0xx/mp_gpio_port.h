@@ -370,7 +370,7 @@ static inline int mp_gpio_port_disableIsr(  mp_device_id_t devid,
 }
 
 __attribute__((always_inline))
-static inline void mp_gpio_port_4_15_handler()
+static inline void mp_gpio_port_exti4_15_isr()
 {   
     // Get the enabled triggers. See LL_EXTI_IsEnabledFallingTrig_0_31() and 
     // LL_EXTI_IsEnabledRisingTrig_0_31()
@@ -402,7 +402,7 @@ static inline void mp_gpio_port_4_15_handler()
 }
 
 __attribute__((always_inline))
-static inline void mp_gpio_port_2_3_handler()
+static inline void mp_gpio_port_exti2_3_isr()
 {   
     // Get the enabled triggers. See LL_EXTI_IsEnabledFallingTrig_0_31() and 
     // LL_EXTI_IsEnabledRisingTrig_0_31()
@@ -436,7 +436,7 @@ static inline void mp_gpio_port_2_3_handler()
 }
 
 __attribute__((always_inline))
-static inline void mp_gpio_port_0_1_handler()
+static inline void mp_gpio_port_exti0_1_isr()
 {   
     // Get the enabled triggers. See LL_EXTI_IsEnabledFallingTrig_0_31() and 
     // LL_EXTI_IsEnabledRisingTrig_0_31()

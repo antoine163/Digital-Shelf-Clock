@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MP_DRIVER_GPIO_H
-#define MP_DRIVER_GPIO_H
+#ifndef MP_GPIO_H
+#define MP_GPIO_H
 
 // Include ---------------------------------------------------------------------
 #include <stddef.h>
@@ -374,4 +374,4 @@ static inline int mp_gpio_getValue(mp_device_id_t devid, unsigned int pinmask)
 }
 
 
-#endif // MP_DRIVER_GPIO_H
+#endif // MP_GPIO_H

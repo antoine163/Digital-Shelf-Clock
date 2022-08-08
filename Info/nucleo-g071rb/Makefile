@@ -81,6 +81,7 @@ CSRC += drivers/stm32g0xx_hal_driver/Src/stm32g0xx_ll_utils.c
 ## mpLib source files
 CSRC += mpLib/mp.c
 CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_gpio_port.c
+CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_interrupt_port.c
 #CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_uart_port.c
 #CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_adc_port.c
 #CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_spi_port.c

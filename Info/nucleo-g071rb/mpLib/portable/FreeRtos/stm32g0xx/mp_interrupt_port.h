@@ -22,10 +22,25 @@
  * SOFTWARE.
  */
 
+#ifndef MP_INTERRUPT_PORT_H
+#define MP_INTERRUPT_PORT_H
+
 // Include ---------------------------------------------------------------------
-#include "mp/drivers/gpio.h"
+#include "stm32g0xx.h"
+// Don't include "mp/drivers/interrupt.h" here. It is "mp/drivers/interrupt.h" which
+// include "mp_interrupt_port.h" after to have declare enum, strucur, typdef, ...
 
-// Protected global variables --------------------------------------------------
-void (*_mp_gpio_port_extix_isr[16])(mp_gpio_trigger_t) = {NULL};
 
-// Implemented functions -------------------------------------------------------
+// Define macro ----------------------------------------------------------------
+
+// Structure -------------------------------------------------------------------
+
+// Extern protected global variables -------------------------------------------
+
+// Prototype functions ---------------------------------------------------------
+int mp_interrupt_port_init();
+
+// Static inline functions -----------------------------------------------------
+
+
+#endif // MP_INTERRUPT_PORT_H
