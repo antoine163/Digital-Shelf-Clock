@@ -61,10 +61,14 @@ DLDFLAGS =
 ##
 ## End define flags
 #################################
-
-
+#PROGRAM_IN = SRAM
 # Linker script file
-LDSCRIPT = linker/stm32g071rbtx_flash.ld
+ifeq ($(PROGRAM_IN),SRAM)
+	LDSCRIPT = linker/stm32g071rbtx_sram.ld
+else
+	LDSCRIPT = linker/stm32g071rbtx_flash.ld
+endif
+
 
 # List ASM source files
 ASRC = app/startup_stm32g071xx.s
@@ -105,6 +109,12 @@ UINCDIR += mpLib/portable/FreeRtos/stm32g0xx/
 UDEFS  = STM32G071xx
 UDEFS += BOARD_NUCLEO_G071X
 
+ifeq ($(PROGRAM_IN),SRAM)
+	UDEFS += USER_VECT_TAB_ADDRESS
+	UDEFS += VECT_TAB_SRAM
+endif
+
+
 # List of release define in more
 RDEFS = 
 
@@ -130,7 +140,7 @@ TOOLDIR = tools
 #
 
 # Binary objects directory
-OBJS = build
+OBJS = /tmp/$(TARGET)/build
 # Binary ASM objects directory
 DASOBJS = $(OBJS)/asm
 # Binary C objects directory
@@ -188,13 +198,15 @@ $(TARGET).elf: $(ASOBJS) $(COBJS)
 # Build ASM sources
 .PRECIOUS: $(DASOBJS)/%.o
 $(DASOBJS)/%.o: %.s
-	@mkdir -p $(patsubst /%,%, $(@D))
+#	@mkdir -p $(patsubst /%,%, $(@D))
+	@mkdir -p $(@D)
 	$(AS) $(ASFLAGS) $< -o $@
 
 # Build C sources
 .PRECIOUS: $(DCOBJS)/%.o
 $(DCOBJS)/%.o: %.c
-	@mkdir -p $(patsubst /%,%, $(@D))
+#	@mkdir -p $(patsubst /%,%, $(@D))
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $< -c -o $@
 	
 hex:
@@ -210,14 +222,13 @@ disassemble:
 	$(OBJDUMP) -hd $(TARGET).elf > $(TARGET).lss
 
 
-## Reset the target
-#reset:
-#	openocd -f $(CONFIFDIR)/openocd/init.cfg -c "init; reset; shutdown"
-##   openocd -f $(CONFIFDIR)/openocd/init.cfg -c "init; reset; shutdown" 2> /dev/null
+# Reset target with openocd
+reset:
+	openocd -f tools/openocd/st_nucleo_g0.cfg -c "init; reset; shutdown"
 	
-## Flash the target
-#flash_program:
-#	openocd -f $(CONFIFDIR)/openocd/init.cfg -c "program $(TARGET).elf verify reset"
+# Flash target with openocd
+flash:
+	openocd -f tools/openocd/st_nucleo_g0.cfg -c "program $(TARGET).elf verify; reset; shutdown"
 	
 ## Flash the target
 #boot_program: bin
@@ -235,6 +246,9 @@ disassemble:
 #flash_eeprom_erase:
 #	@openocd -f $(CONFIFDIR)/openocd/init.cfg -f $(CONFIFDIR)/openocd/flash_eeprom_erase.cfg
 	
+# Load (flash or ram) the program to target and run with gdb/openocd
+load:
+	$(GDB) --command=$(TOOLDIR)/gdb/gdbinit_stm32g0x_load.cfg $(TARGET).elf
 	
 # Run gdb/openocd for load and debug.
 gdb:debug

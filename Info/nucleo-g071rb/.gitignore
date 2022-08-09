@@ -2,10 +2,9 @@
 build
 *.o
 
-# Executables
+# Executable, Map, Assembler files
 *.elf
 *.bin
 *.hex
-
-# Map file
 *.map
+*.lss
