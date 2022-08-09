@@ -28,14 +28,10 @@ long_line_behaviour=2
 long_line_column=80
 
 [files]
-current_page=3
-FILE_NAME_0=1947;Make;0;EUTF-8;1;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FMakefile;0;4
-FILE_NAME_1=2143;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2FmpDevicesTable.h;0;4
-FILE_NAME_2=5334;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Fapp%2Ftasks%2Ftask_test.c;0;4
-FILE_NAME_3=4681;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp%2Fdrivers%2Fuart.h;0;4
-FILE_NAME_4=3444;C;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Fportable%2FFreeRtos%2Fstm32g0xx%2Fmp_uart_port.c;0;4
-FILE_NAME_5=1570;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp_devices.h;0;4
-FILE_NAME_6=0;C++;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FmpLib%2Finclude%2Fmp_drivers.h;0;4
+current_page=2
+FILE_NAME_0=129;Conf;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Ftools%2Fgdb%2Fgdbinit_stm32g0x_load.cfg;0;4
+FILE_NAME_1=6308;Make;0;EUTF-8;1;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2FMakefile;0;4
+FILE_NAME_2=298;Conf;0;EUTF-8;0;1;0;%2Fhome%2Fantoine%2FProjects%2FDigital-Shelf-Clock%2FInfo%2Fnucleo-g071rb%2Ftools%2Fgdb%2Fgdbinit_stm32g0x.cfg;0;4
 
 [VTE]
 last_dir=/home/antoine/Projects/Digital-Shelf-Clock/Info/nucleo-g071rb
@@ -51,14 +47,17 @@ external_dirs=
 
 [build-menu]
 NF_00_LB=_Make
-NF_00_CM=make clean && make release disassemble
+NF_00_CM=make clean && make release disassemble PROGRAM_IN=SRAM
 NF_00_WD=%p
 NF_01_LB=Make Custom _Target...
 NF_01_CM=make 
 NF_01_WD=%p
 EX_00_LB=_Execute
-EX_00_CM=make stflash
+EX_00_CM=make load
 EX_00_WD=%p
+EX_01_LB=
+EX_01_CM=
+EX_01_WD=
 
 [debugger]
 target=/home/antoine/Projects/Digital-Shelf-Clock/Info/nucleo-g071rb/digital_shelf_clock.elf
