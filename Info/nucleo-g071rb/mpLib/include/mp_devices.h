@@ -66,7 +66,6 @@ typedef enum
 typedef struct
 {
     mp_device_id_t const devid;
-    int isInit;
     
     // option semaphor
     // sem protect;

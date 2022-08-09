@@ -35,17 +35,10 @@
 #define BP1                 MP_GPIO_PIN(dev_gpioc, 13)
 #define BP2                 MP_GPIO_PIN(dev_gpiob, 7)
 
-//#define USART2_TX           MP_GPIO_PIN(dev_gpioa, 2)
-//#define USART2_RX           MP_GPIO_PIN(dev_gpioa, 3)
-
-
 #define AFF_7SEG            MP_GPIO_PIN(dev_gpioc, 0, 1, 2, 3, 4, 5, 6, 10)
 
 
-
-
-
-// Pin Mux USART2 ( dev_tty )
+// Pins of USART2 ( dev_tty )
 #define MP_USART2_TX_GPIO_Port      GPIOA
 #define MP_USART2_TX_Pin            LL_GPIO_PIN_2
 #define MP_USART2_TX_AF             LL_GPIO_AF_1
@@ -63,10 +56,6 @@
 
 #define MP_USART2_CLKSOURCE         LL_RCC_USART2_CLKSOURCE_PCLK1
 #define MP_USART2_TXRX_SWAPPED      LL_USART_TXRX_STANDARD
-
-
-
-
 
 
 

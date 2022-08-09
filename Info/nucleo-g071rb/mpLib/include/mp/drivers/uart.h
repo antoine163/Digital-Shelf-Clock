@@ -229,6 +229,7 @@ static inline int mp_uart_ctl(mp_device_id_t devid, int request, ...)
 // Note: fonction pour fair des printf rapide. si plusiteur uarte son definie
 // dans la table des device il peut étre préférable de re emplementer cette fonction.
 // Todo: Completer/améliorer le comentére si dessus
+// @note: le printef prend bocoup de place ...
 static inline int mp_uart_printf(mp_device_id_t devid, char const * format, ...)
 {
     int ret = -1;

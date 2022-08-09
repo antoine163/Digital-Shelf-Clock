@@ -78,16 +78,12 @@ mp_uart_port_t * _mp_uart_port_lpuart2_dev = NULL;
  * - MP_USART6_IRQ_PRIORITY
  * 
  * 
- * 
- * USART1_IRQHandler
- * USART2_LPUART2_IRQHandler
- * USART3_4_5_6_LPUART1_IRQHandler
- * 
- * 
- * 
- * - USART1_IRQHandler
- * - USART2_IRQHandler
- * - USART3_4_LPUART1_IRQHandler
+ * IRQHandler :
+ * - USART1
+ * - USART2_LPUART2
+ * - USART3_4_5_6_LPUART1
+ * - USART2
+ * - USART3_4_LPUART1
  * 
  */
 
@@ -101,25 +97,21 @@ mp_uart_port_t * _mp_uart_port_lpuart2_dev = NULL;
  * be enable before call this function.
  * 
  * @warning The IRQ used here (ex: USART2_IRQn) must be enable...
+ * @todo a revoire
  */
 int mp_uart_port_init(mp_device_id_t devid)
 {
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
     
-    // Init GPIO of USART2
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // USART2
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     #if defined(MP_USART2_RX_GPIO_Port) || defined(MP_USART2_TX_GPIO_Port)
     if (uartx == USART2)
     {
-        //#ifdef MP_USART2_RX_GPIO_Port
-        //mp_gpio_config(drv_gpio, MP_USART2_RX)
-        //#endif
-        
-        //#ifdef MP_USART2_TX_GPIO_Port
-        //#endif
-        
         #ifdef MP_USART2_RX_GPIO_Port
-            // Configure RX Pin as : Alternate function, High Speed, PushPull, Pull up.
+            // Configure RX Pin as : Alternate function
             LL_GPIO_SetPinMode(         MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, LL_GPIO_MODE_ALTERNATE);
             if(MP_USART2_RX_Pin <= LL_GPIO_PIN_7)
                 LL_GPIO_SetAFPin_0_7(   MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_AF);
@@ -130,7 +122,7 @@ int mp_uart_port_init(mp_device_id_t devid)
         #endif
         
         #ifdef MP_USART2_TX_GPIO_Port
-            // Configure TX Pin as : Alternate function, High Speed, PushPull, Pull up.
+            // Configure TX Pin as : Alternate function
             LL_GPIO_SetPinMode(         MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, LL_GPIO_MODE_ALTERNATE);
             if(MP_USART2_TX_Pin <= LL_GPIO_PIN_7)
                 LL_GPIO_SetAFPin_0_7(   MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_AF);
@@ -140,13 +132,6 @@ int mp_uart_port_init(mp_device_id_t devid)
             LL_GPIO_SetPinOutputType(   MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_OUTPUT);
             LL_GPIO_SetPinPull(         MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_PULL);
         #endif
-
-        // Enable IRQ
-        //NVIC_SetPriority(USART2_IRQn, MP_USART2_IRQ_PRIORITY);
-        //NVIC_SetPriority(USART2_IRQn, MP_USART2_IRQ_PRIORITY);
-        //NVIC_EnableIRQ(USART2_IRQn);
-        
-        //mp_irq_enable(drv_irq, USART2);
         
         // Enable the USART2 peripheral clock and clock source.
         LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
@@ -154,7 +139,7 @@ int mp_uart_port_init(mp_device_id_t devid)
         // Set USART2 clock source as PCLK1
         LL_RCC_SetUSARTClockSource(MP_USART2_CLKSOURCE);
         
-        // Set Usart2 pointer.
+        // Save pointer of usart device.
         _mp_uart_port_usart2_dev = dev;
         
         #ifdef MP_USART2_RX_GPIO_Port
@@ -166,13 +151,51 @@ int mp_uart_port_init(mp_device_id_t devid)
     }
     #endif
     
-    
     return -1;
 }
 
 int mp_uart_port_deinit(mp_device_id_t devid)
 {
-    (void)devid;
+    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
+    USART_TypeDef * uartx = dev->uartx;
+    
+    
+    // Disable RXNE and Error interrupts.
+    LL_USART_DisableIT_RXNE(uartx);
+        
+    // Disable usart
+    LL_LPUART_Disable(uartx);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // USART2
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    #if defined(USART2_RX_GPIO_Port) || defined(USART2_TX_GPIO_Port)
+    if(uartx == USART2)
+    {
+        // Remove pointer of usart device.
+        _mp_uart_port_usart2_dev = NULL;
+        
+        // Disable the USART2 peripheral clock and clock source.
+        LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_USART2);
+        
+        #ifdef USART2_RX_GPIO_Port
+            // Configure RX Pin as : Analog input.
+            LL_GPIO_SetPinMode(     USART2_RX_GPIO_Port, USART2_RX_Pin, LL_GPIO_MODE_ANALOG);
+            LL_GPIO_SetPinSpeed(    USART2_RX_GPIO_Port, USART2_RX_Pin, LL_GPIO_SPEED_FREQ_MEDIUM);
+            LL_GPIO_SetPinPull(     USART2_RX_GPIO_Port, USART2_RX_Pin, LL_GPIO_PULL_NO);
+        #endif
+        
+        #ifdef USART2_TX_GPIO_Port
+            // Configure TX Pin as : Analog input.
+            LL_GPIO_SetPinMode(     USART2_TX_GPIO_Port, USART2_TX_Pin, LL_GPIO_MODE_ANALOG);
+            LL_GPIO_SetPinSpeed(    USART2_TX_GPIO_Port, USART2_TX_Pin, LL_GPIO_SPEED_FREQ_MEDIUM);
+            LL_GPIO_SetPinPull(     USART2_TX_GPIO_Port, USART2_TX_Pin, LL_GPIO_PULL_NO);
+        #endif
+        
+        return 0;
+    }
+    #endif
+    
     return -1;
 }
 
