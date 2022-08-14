@@ -89,6 +89,7 @@ typedef struct
 } mp_gpio_t;
 
 // Include ---------------------------------------------------------------------
+//#warning "Todo fair comme dans uart"
 #include "mpDevicesTable.h"
 #include "mp_gpio_port.h"
 

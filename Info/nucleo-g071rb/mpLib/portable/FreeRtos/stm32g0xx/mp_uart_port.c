@@ -96,7 +96,6 @@ mp_uart_port_t * _mp_uart_port_lpuart2_dev = NULL;
  * @warning The peripheral clock of GPIO Port used here (ex: Tx and Rx pin) must
  * be enable before call this function.
  * 
- * @warning The IRQ used here (ex: USART2_IRQn) must be enable...
  * @todo a revoire
  */
 int mp_uart_port_init(mp_device_id_t devid)
@@ -105,9 +104,71 @@ int mp_uart_port_init(mp_device_id_t devid)
     USART_TypeDef * uartx = dev->uartx;
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // USART1
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    #if defined(MP_USART1_RX_GPIO_Port) || defined(MP_USART1_TX_GPIO_Port)
+    #ifndef USART1
+    #error "MP_USART1_*** is defined in mpHardMap.h but the USART1 is not available on your stm32g0 !"
+    #endif
+    if (uartx == USART1)
+    {
+        #ifdef MP_USART1_RX_GPIO_Port
+            // Configure RX Pin as : Alternate function
+            LL_GPIO_SetPinMode(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, LL_GPIO_MODE_ALTERNATE);
+            if(MP_USART1_RX_Pin <= LL_GPIO_PIN_7)
+                LL_GPIO_SetAFPin_0_7(   MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_AF);
+            else
+                LL_GPIO_SetAFPin_8_15(  MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_AF);
+            LL_GPIO_SetPinSpeed(        MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_SPEED);
+            LL_GPIO_SetPinPull(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_PULL);
+        #endif
+        
+        #ifdef MP_USART1_TX_GPIO_Port
+            // Configure TX Pin as : Alternate function
+            LL_GPIO_SetPinMode(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, LL_GPIO_MODE_ALTERNATE);
+            if(MP_USART1_TX_Pin <= LL_GPIO_PIN_7)
+                LL_GPIO_SetAFPin_0_7(   MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_AF);
+            else
+                LL_GPIO_SetAFPin_8_15(  MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_AF);
+            LL_GPIO_SetPinSpeed(        MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_SPEED);
+            LL_GPIO_SetPinOutputType(   MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_OUTPUT);
+            LL_GPIO_SetPinPull(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_PULL);
+        #endif
+        
+        // Enable the USART1 peripheral clock and clock source.
+        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+        
+        // Set USART1 clock source as PCLK1
+        LL_RCC_SetUSARTClockSource(MP_USART1_CLKSOURCE);
+        
+        // Save pointer of usart device.
+        _mp_uart_port_usart1_dev = dev;
+        
+        
+        #ifdef MP_USART1_RX_PIN_LEVEL
+        LL_USART_SetRXPinLevel(USART1, MP_USART1_RX_PIN_LEVEL);
+        #endif
+        
+        #ifdef MP_USART1_TX_PIN_LEVEL
+        LL_USART_SetTXPinLevel(USART1, MP_USART1_TX_PIN_LEVEL);
+        #endif
+        
+        #ifdef MP_USART1_RX_GPIO_Port
+            // Enable RXNE and Error interrupts.
+            LL_USART_EnableIT_RXNE_RXFNE(USART1);
+        #endif
+        
+        return 0;
+    }
+    #endif
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // USART2
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     #if defined(MP_USART2_RX_GPIO_Port) || defined(MP_USART2_TX_GPIO_Port)
+    #ifndef USART2
+    #error "MP_USART2_*** is defined in mpHardMap.h but the USART2 is not available on your stm32g0 !"
+    #endif
     if (uartx == USART2)
     {
         #ifdef MP_USART2_RX_GPIO_Port
@@ -142,6 +203,14 @@ int mp_uart_port_init(mp_device_id_t devid)
         // Save pointer of usart device.
         _mp_uart_port_usart2_dev = dev;
         
+        #ifdef MP_USART2_RX_PIN_LEVEL
+        LL_USART_SetRXPinLevel(USART2, MP_USART2_RX_PIN_LEVEL);
+        #endif
+        
+        #ifdef MP_USART2_TX_PIN_LEVEL
+        LL_USART_SetTXPinLevel(USART2, MP_USART2_TX_PIN_LEVEL);
+        #endif
+        
         #ifdef MP_USART2_RX_GPIO_Port
             // Enable RXNE and Error interrupts.
             LL_USART_EnableIT_RXNE_RXFNE(USART2);
@@ -159,12 +228,41 @@ int mp_uart_port_deinit(mp_device_id_t devid)
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
     
-    
     // Disable RXNE and Error interrupts.
-    LL_USART_DisableIT_RXNE(uartx);
+    LL_USART_DisableIT_RXNE_RXFNE(uartx);
         
     // Disable usart
     LL_LPUART_Disable(uartx);
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // USART1
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    #if defined(USART1_RX_GPIO_Port) || defined(USART1_TX_GPIO_Port)
+    if(uartx == USART1)
+    {
+        // Remove pointer of usart device.
+        _mp_uart_port_usart1_dev = NULL;
+        
+        // Disable the USART1 peripheral clock and clock source.
+        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+        
+        #ifdef USART1_RX_GPIO_Port
+            // Configure RX Pin as : Analog input.
+            LL_GPIO_SetPinMode(     USART1_RX_GPIO_Port, USART1_RX_Pin, LL_GPIO_MODE_ANALOG);
+            LL_GPIO_SetPinSpeed(    USART1_RX_GPIO_Port, USART1_RX_Pin, LL_GPIO_SPEED_FREQ_MEDIUM);
+            LL_GPIO_SetPinPull(     USART1_RX_GPIO_Port, USART1_RX_Pin, LL_GPIO_PULL_NO);
+        #endif
+        
+        #ifdef USART1_TX_GPIO_Port
+            // Configure TX Pin as : Analog input.
+            LL_GPIO_SetPinMode(     USART1_TX_GPIO_Port, USART1_TX_Pin, LL_GPIO_MODE_ANALOG);
+            LL_GPIO_SetPinSpeed(    USART1_TX_GPIO_Port, USART1_TX_Pin, LL_GPIO_SPEED_FREQ_MEDIUM);
+            LL_GPIO_SetPinPull(     USART1_TX_GPIO_Port, USART1_TX_Pin, LL_GPIO_PULL_NO);
+        #endif
+        
+        return 0;
+    }
+    #endif
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // USART2
@@ -199,10 +297,10 @@ int mp_uart_port_deinit(mp_device_id_t devid)
     return -1;
 }
 
-int mp_uart_port_config(mp_device_id_t devid,
-                        mp_uart_baudrate_t baudrate,
-                        mp_uart_databits_t databit,
-                        mp_uart_parity_t parity,
+// Note: pas de pariter en databit=9
+// Note: la vertion 9bit non suporter par ce driver mais pouret étre implmenter ...
+int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
+                        mp_uart_databits_t databit, mp_uart_parity_t parity,
                         mp_uart_stopbit_t stopbit)
 {  
     (void)baudrate;
@@ -210,19 +308,66 @@ int mp_uart_port_config(mp_device_id_t devid,
     (void)parity;
     (void)stopbit;
     
+    // Todo: fair des asserts
+    //// Check databit compatibility
+    //mp_assert(  (databit == MP_UART_DATA_7BITS) ||
+                //(databit == MP_UART_DATA_8BITS) ||
+                //(databit == MP_UART_DATA_9BITS) )
+    
+    //// Check stopbit compatibility
+    //mp_assert(  (stopbit == MP_UART_STOPBIT_0_5) ||
+                //(stopbit == MP_UART_STOPBIT_1)   ||
+                //(stopbit == MP_UART_STOPBIT_1_5) ||
+                //(stopbit == MP_UART_STOPBIT_2) )
+    
+    //// Check stopbit compatibility
+    //mp_assert(  (databit != MP_UART_DATA_9BITS) ||
+                //(databit == MP_UART_DATA_9BITS) &&
+                //(parity == MP_UART_PARITY_NO) )
+    
+    
+    
     USART_TypeDef * uartx = MP_PORT_UART_GET(devid)->uartx;
+    
+    
+    
+    uint32_t DataWidth = LL_USART_DATAWIDTH_8B;
+    //switch(databit)
+    //{
+        //case MP_UART_DATA_7BITS: DataWidth = LL_USART_DATAWIDTH_7B; break;
+        //case MP_UART_DATA_8BITS: DataWidth = LL_USART_DATAWIDTH_8B; break;
+        //case MP_UART_DATA_9BITS: DataWidth = LL_USART_DATAWIDTH_9B; break;
+        //default return -1;
+    //}
+    
+    uint32_t Parity = LL_USART_PARITY_NONE;
+    //switch(parity)
+    //{
+        //case MP_UART_PARITY_NO:   Parity = LL_USART_PARITY_NONE; break;
+        //case MP_UART_PARITY_ODD:  Parity = LL_USART_PARITY_ODD;  break;
+        //case MP_UART_PARITY_EVEN: Parity = LL_USART_PARITY_EVEN; break;
+        //default return -1;
+    //}
+    
+    uint32_t StopBits = LL_USART_STOPBITS_1;
+    //switch(stopbit)
+    //{
+        //case MP_UART_STOPBIT_0_5: StopBits = LL_USART_STOPBITS_1; break;
+        //default return -1;
+    //}
     
     /* (4) Configure USART functional parameters ********************************/
     
     /* Disable USART prior modifying configuration registers */
     /* Note: Commented as corresponding to Reset value */
-    // LL_USART_Disable(drv->dev);
+     LL_USART_Disable(uartx);
     
     /* TX/RX direction */
-    LL_USART_SetTransferDirection(uartx, LL_USART_DIRECTION_TX_RX);
+    //LL_USART_SetTransferDirection(uartx, LL_USART_DIRECTION_TX_RX);
+    LL_USART_SetTransferDirection(uartx, LL_USART_DIRECTION_TX);
     
     /* 8 data bit, 1 start bit, 1 stop bit, no parity */
-    LL_USART_ConfigCharacter(uartx, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
+    LL_USART_ConfigCharacter(uartx, DataWidth, Parity, StopBits);
     
     /* No Hardware Flow control */
     /* Reset value is LL_USART_HWCONTROL_NONE */
@@ -230,7 +375,8 @@ int mp_uart_port_config(mp_device_id_t devid,
     
     /* Oversampling by 16 */
     /* Reset value is LL_USART_OVERSAMPLING_16 */
-    // LL_USART_SetOverSampling(drv->dev, LL_USART_OVERSAMPLING_16);
+    // LL_USART_SetOverSampling(uartx, LL_USART_OVERSAMPLING_16);
+     LL_USART_SetOverSampling(uartx, LL_USART_OVERSAMPLING_8);
     
     /* Set Baudrate to 115200 using APB frequency set to 56000000 Hz */
     /* Frequency available for USART peripheral can also be calculated through LL RCC macro */
@@ -239,13 +385,16 @@ int mp_uart_port_config(mp_device_id_t devid,
     
         In this example, Peripheral Clock is expected to be equal to 56000000 Hz => equal to SystemCoreClock
     */
-    LL_USART_SetBaudRate(uartx, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_16, (uint32_t)baudrate); 
+    LL_USART_SetBaudRate(uartx, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_8, (uint32_t)baudrate); 
+    //LL_USART_SetBaudRate(uartx, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_16, (uint32_t)baudrate); 
+    // Todo activer ou pas LL_USART_OVERSAMPLING_16
     
     /* (5) Enable USART *********************************************************/
     LL_USART_Enable(uartx);
     
     /* Polling USART initialisation */
-    while ((!(LL_USART_IsActiveFlag_TEACK(uartx))) || (!(LL_USART_IsActiveFlag_REACK(uartx))))
+    //while ((!(LL_USART_IsActiveFlag_TEACK(uartx))) || (!(LL_USART_IsActiveFlag_REACK(uartx))))
+    while ( !LL_USART_IsActiveFlag_TEACK(uartx) )
     { 
     }
     
@@ -259,13 +408,13 @@ int mp_uart_port_write(mp_device_id_t devid, const void *buf, size_t nbyte)
     
     memcpy(dev->txBuf, buf, nbyte);
     dev->lenSend = nbyte;
-    dev->iSend = 1;
+    dev->iSend = 0;
     
-    /* Start USART transmission : Will initiate TXE interrupt after TDR register is empty */
-    LL_USART_TransmitData8(uartx, dev->txBuf[0]); 
-
+    ///* Start USART transmission : Will initiate TXE interrupt after TDR register is empty */
+    //LL_USART_TransmitData8(uartx, dev->txBuf[0]); 
+    
     /* Enable TXE interrupt */
-    LL_USART_EnableIT_TXE(uartx); 
+    LL_USART_EnableIT_TXE_TXFNF(uartx);
     
     return 0;
 }

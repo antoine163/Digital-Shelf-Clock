@@ -32,20 +32,25 @@
 
 #include "mp_drivers.h"
 #include "mp_devices.h"
+//#include "mp_port_enum.h"
 
 // Enum ------------------------------------------------------------------------
 typedef enum
 {
-    MP_UART_BAUDRATE_300    = 600,      //!< 600 bps.
-    MP_UART_BAUDRATE_1200   = 1200,     //!< 1200 bps.
-    MP_UART_BAUDRATE_2400   = 2400,     //!< 2400 bps.
-    MP_UART_BAUDRATE_4800   = 4800,     //!< 4800 bps.
-    MP_UART_BAUDRATE_9600   = 9600,     //!< 9600 bps.
-    MP_UART_BAUDRATE_19200  = 19200,    //!< 19200 bps.
-    MP_UART_BAUDRATE_38400  = 38400,    //!< 38400 bps.
-    MP_UART_BAUDRATE_57600  = 57600,    //!< 57600 bps.
-    MP_UART_BAUDRATE_115200 = 115200,   //!< 115200 bps.
-    MP_UART_BAUDRATE_230400 = 230400    //!< 230400 bps.
+    MP_UART_BAUDRATE_300     = 600,     //!< 600 bps.
+    MP_UART_BAUDRATE_1200    = 1200,    //!< 1200 bps.
+    MP_UART_BAUDRATE_2400    = 2400,    //!< 2400 bps.
+    MP_UART_BAUDRATE_4800    = 4800,    //!< 4800 bps.
+    MP_UART_BAUDRATE_9600    = 9600,    //!< 9600 bps.
+    MP_UART_BAUDRATE_19200   = 19200,   //!< 19200 bps.
+    MP_UART_BAUDRATE_38400   = 38400,   //!< 38400 bps.
+    MP_UART_BAUDRATE_57600   = 57600,   //!< 57600 bps.
+    MP_UART_BAUDRATE_115200  = 115200,  //!< 115200 bps.
+    MP_UART_BAUDRATE_230400  = 230400,  //!< 230400 bps.
+    MP_UART_BAUDRATE_460800  = 460800,  //!< 460800 bps.
+    MP_UART_BAUDRATE_921600  = 921600,  //!< 921600 bps.
+    MP_UART_BAUDRATE_1843200 = 1843200, //!< 1843200 bps.
+    MP_UART_BAUDRATE_3686400 = 3686400  //!< 3686400 bps.
 }mp_uart_baudrate_t;
 
 typedef enum
@@ -59,18 +64,28 @@ typedef enum
 
 typedef enum
 {
-    MP_UART_PARITY_NO   = 0,    //!< No parity.
-    MP_UART_PARITY_ODD  = 1,    //!< ODD parity.
-    MP_UART_PARITY_EVEN = 2     //!< Even parity.
+    // Note: MP_UART_PORT_PARITY_DEFINED can be define by "mp_uart_port_enum.h"
+    // frome "mp_port_enum.h"
+    //#if defined(MP_UART_PORT_PARITY_DEFINED)
+    //MP_UART_PARITY_NO   = MP_UART_PORT_PARITY_NO,
+    //MP_UART_PARITY_ODD  = MP_UART_PORT_PARITY_ODD,
+    //MP_UART_PARITY_EVEN = MP_UART_PORT_PARITY_EVEN
+    //#else 
+    MP_UART_PARITY_NO,      //!< No parity.
+    MP_UART_PARITY_ODD,     //!< ODD parity.
+    MP_UART_PARITY_EVEN     //!< Even parity.
+    //#endif
 }mp_uart_parity_t;
 
 typedef enum
 {
-    MP_UART_STOPBIT_0_5 = 0,    //!< 0.5 stop bit.
-    MP_UART_STOPBIT_1   = 1,    //!< 1 stop bit.
-    MP_UART_STOPBIT_1_5 = 2,    //!< 1.5 stop bit.
-    MP_UART_STOPBIT_2   = 3     //!< 2 stop bit.
+    MP_UART_STOPBIT_0_5,    //!< 0.5 stop bit.
+    MP_UART_STOPBIT_1,      //!< 1 stop bit.
+    MP_UART_STOPBIT_1_5,    //!< 1.5 stop bit.
+    MP_UART_STOPBIT_2       //!< 2 stop bit.
 }mp_uart_stopbit_t;
+
+#undef MP_UART_SET_ENUM_VALUE_FROM_PORT
 
 // Structure -------------------------------------------------------------------
 typedef struct
@@ -81,14 +96,6 @@ typedef struct
 // Include ---------------------------------------------------------------------
 #include "mpDevicesTable.h"
 #include "mp_uart_port.h"
-
-// Include UART drivers from devices, know by mpLib
-//#include "..."
-
-// Include additional UART driver from device unknown by mpLib
-#ifdef MP_ADD_UART_DRIVER_HEADER
-    #include MP_ADD_UART_DRIVER_HEADER
-#endif // MP_ADD_UART_DRIVER_HEADER
 
 // Extern global variables -----------------------------------------------------
 

@@ -41,12 +41,13 @@
  * MP_DRV_SPI( device, driver, peripheral)
  */
 #define MP_DEVICES_TABLE                                               \
-    MP_DEV_UART(dev_tty,    port,       USART2)                        \
-    MP_DEV_GPIO(dev_gpioa,  port,       GPIOA)                         \
-    MP_DEV_GPIO(dev_gpiob,  port,       GPIOB)                         \
-    MP_DEV_GPIO(dev_gpioc,  port,       GPIOC)                         \
-    MP_DEV_GPIO(dev_gpiod,  port,       GPIOD)                         \
-    MP_DEV_GPIO(dev_gpiof,  port,       GPIOF)
+    MP_DEV_UART(dev_ws2812b,    port,       USART1)                    \
+    MP_DEV_UART(dev_tty,        port,       USART2)                    \
+    MP_DEV_GPIO(dev_gpioa,      port,       GPIOA)                     \
+    MP_DEV_GPIO(dev_gpiob,      port,       GPIOB)                     \
+    MP_DEV_GPIO(dev_gpioc,      port,       GPIOC)                     \
+    MP_DEV_GPIO(dev_gpiod,      port,       GPIOD)                     \
+    MP_DEV_GPIO(dev_gpiof,      port,       GPIOF)
  
  
 #if 0

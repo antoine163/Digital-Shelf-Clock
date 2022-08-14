@@ -44,7 +44,7 @@ typedef struct
     mp_uart_t uart_parent;
     USART_TypeDef * const uartx;
     
-    char txBuf[64];
+    char txBuf[512];
     unsigned int lenSend;
     unsigned int iSend;
 }mp_uart_port_t;
@@ -63,10 +63,8 @@ extern mp_uart_port_t * _mp_uart_port_lpuart2_dev;
 int mp_uart_port_init(mp_device_id_t devid);
 int mp_uart_port_deinit(mp_device_id_t devid);
 int mp_uart_port_config(mp_device_id_t devid,
-                        mp_uart_baudrate_t baudrate,
-                        mp_uart_databits_t databit,
-                        mp_uart_parity_t parity,
-                        mp_uart_stopbit_t stopbit);
+                        mp_uart_baudrate_t baudrate, mp_uart_databits_t databit,
+                        mp_uart_parity_t parity, mp_uart_stopbit_t stopbit);
 int mp_uart_port_write(mp_device_id_t devid, void const * buf, size_t nbyte);
 int mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte);
 int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap);
@@ -92,8 +90,8 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
             /* Disable TXE interrupt */
             LL_USART_DisableIT_TXE_TXFNF(uartx);
           
-            /* Enable TC interrupt */
-            LL_USART_EnableIT_TC(uartx);
+            ///* Enable TC interrupt */
+            //LL_USART_EnableIT_TC(uartx);
         }
 
         /* Fill TDR with a new char */
@@ -101,27 +99,33 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
         dev->iSend++;
     }
     
-    if (LL_USART_IsEnabledIT_TC(uartx) && LL_USART_IsActiveFlag_TC(uartx))
-    {
-        /* Clear TC flag */
-        LL_USART_ClearFlag_TC(uartx);
-        /* Call function in charge of handling end of transmission of sent character
-        and prepare next character transmission */
-        //USART_CharTransmitComplete_Callback();
+    //if (LL_USART_IsEnabledIT_TC(uartx) && LL_USART_IsActiveFlag_TC(uartx))
+    //{
+        ///* Clear TC flag */
+        //LL_USART_ClearFlag_TC(uartx);
+        ///* Call function in charge of handling end of transmission of sent character
+        //and prepare next character transmission */
+        ////USART_CharTransmitComplete_Callback();
         
-        /* Disable TC interrupt */
-        LL_USART_DisableIT_TC(uartx);
-    }
+        ///* Disable TC interrupt */
+        //LL_USART_DisableIT_TC(uartx);
+    //}
     
-    if (LL_USART_IsEnabledIT_ERROR(uartx) && LL_USART_IsActiveFlag_NE(uartx))
-    {
+    //if (LL_USART_IsEnabledIT_ERROR(uartx) && LL_USART_IsActiveFlag_NE(uartx))
+    //{
         /* Call Error function */
         //Error_Callback();
         
         /* Disable USARTx_IRQn */
         //NVIC_DisableIRQ(USART2_IRQn);
         //mp_port_irq_disable(usart);
-    }
+    //}
+}
+
+__attribute__((always_inline))
+static inline void mp_uart_port_usart1_isr()
+{
+    mp_uart_port_usartx_isr(_mp_uart_port_usart1_dev);
 }
 
 __attribute__((always_inline))

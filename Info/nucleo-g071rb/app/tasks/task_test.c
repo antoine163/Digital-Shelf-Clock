@@ -88,7 +88,10 @@ unsigned char digit[] = {0xc0,   //0
                         0xbf,   //-
                         0xff};  //
                         
-
+//void ws2812b_reset();
+void ws2812b_test();
+int ws2812b_test_led = 0;
+volatile uint8_t brightness_led = 10;
 void task_test( void* pvParameters )
 {
     (void)pvParameters;
@@ -121,10 +124,19 @@ void task_test( void* pvParameters )
     mp_gpio_enableIsr(BP2, MP_GPIO_TRIGGER_FALLING, bp2Handler);
     mp_gpio_enableIsr(PIN_BP_LED, MP_GPIO_TRIGGER_RISING, bpLedHandler);
     
+    
+    
+    mp_uart_init(dev_ws2812b);
+    //mp_uart_config(dev_ws2812b, 2500000, 8, 0, 1);
+    mp_uart_config(dev_ws2812b, 8000000, 8, 0, 1); // Todo: verifier si le 8MHz est possible avec la clock de 'uart ...
+    //mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
+    //ws2812b_reset();
+    LL_mDelay(1);
+    ws2812b_test();
+    
     mp_uart_init(dev_tty);
     mp_uart_config(dev_tty, 115200, 8, 0, 1);
     mp_uart_printf(dev_tty, "nucleo-g071rb inisilised !\r\n");
-
     
 #if 1
     int cpt = 0;
@@ -154,8 +166,16 @@ void task_test( void* pvParameters )
         //mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
         mp_gpio_setLevel(AFF_7SEG, digit[cpt2]);
         
-        mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u\r\n", cpt, cpt2);
+        mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u", cpt, cpt2);
+        LL_mDelay(100);
+        mp_uart_printf(dev_tty, "\tbrightness_led:%u\r\n", brightness_led);
         
+        
+        if (ws2812b_test_led)
+        {
+            ws2812b_test();
+            ws2812b_test_led = 0;
+        }
         
         ////mp_adc_get_volatag(&drv_adc1, 0);
         ////mp_adc_get_volatag(&drv_adc1, 4);
@@ -169,6 +189,9 @@ void task_test( void* pvParameters )
 void bp1Handler(mp_gpio_trigger_t)
 {
     cpt2++;
+    
+    brightness_led++;
+    ws2812b_test_led = 1;
 }
 
 void bp2Handler(mp_gpio_trigger_t)
@@ -176,6 +199,9 @@ void bp2Handler(mp_gpio_trigger_t)
     cpt2--;
     if( cpt2 < 0)
         cpt2 = 0;
+        
+    brightness_led--;
+    ws2812b_test_led = 1;
 }
 
 void bpLedHandler(mp_gpio_trigger_t)
@@ -183,9 +209,54 @@ void bpLedHandler(mp_gpio_trigger_t)
     cpt2 = 0;
     if( cpt2 >= (int)sizeof(digit))
         cpt2 = sizeof(digit)-1;
+        
+    brightness_led = 0;
+    ws2812b_test_led = 1;
 }
 
+//void ws2812b_reset()
+//{
+    ////mp_uart_config(dev_ws2812b, 160000, 8, 0, 1);
+    //mp_uart_config(dev_ws2812b, 160000/2, 8, 0, 1);
+    //uint8_t buf[2] = {0};
+    //mp_uart_write(dev_ws2812b, buf, 1);
+    //LL_mDelay(2);
+    //mp_uart_config(dev_ws2812b, 2500000, 8, 0, 1);
+//}
 
+void ws2812b_test()
+{
+    #define CODE_0  0b11111100
+    #define CODE_1  0b11000000
+    
+    uint32_t colorLeds[3];
+    
+    colorLeds[0] = brightness_led << 16; //GRB
+    colorLeds[1] = brightness_led << 8;
+    colorLeds[2] = brightness_led << 0;
+    
+    
+    uint8_t buf[128];
+    int iBuf = 0;
+    
+    for(int iColorLed=0; iColorLed<3; iColorLed++)
+    {
+        for(int iByte=23; iByte>=0; iByte--)
+        {
+            if(colorLeds[iColorLed] & (1<<iByte))
+            {
+                buf[iBuf] = CODE_1;
+            }
+            else
+            {
+                buf[iBuf] = CODE_0;
+            }
+            iBuf++;
+        }
+    }
+    
+    mp_uart_write(dev_ws2812b, buf, iBuf+1);
+}
 
 
 

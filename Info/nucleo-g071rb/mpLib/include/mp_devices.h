@@ -75,6 +75,11 @@ typedef struct
 extern mp_device_t * const _mp_devices_table[];
 
 // Static inline function ------------------------------------------------------
+static inline mp_device_t * mp_device_get(mp_device_id_t devid)
+{
+    return _mp_devices_table[MP_DEVICE_ID(devid)];
+}
+
 
 static inline int mp_device_take(mp_device_t * dev, unsigned int timeout)
 {
@@ -89,10 +94,7 @@ static inline int mp_device_give(mp_device_t * dev)
     return 0;
 }
 
-static inline mp_device_t * mp_device_get(mp_device_id_t devid)
-{
-    return _mp_devices_table[MP_DEVICE_ID(devid)];
-}
+
 
 #endif // MP_DEVICES_H
 
