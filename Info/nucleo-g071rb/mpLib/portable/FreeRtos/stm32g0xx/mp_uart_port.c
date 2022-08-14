@@ -302,12 +302,7 @@ int mp_uart_port_deinit(mp_device_id_t devid)
 int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
                         mp_uart_databits_t databit, mp_uart_parity_t parity,
                         mp_uart_stopbit_t stopbit)
-{  
-    (void)baudrate;
-    (void)databit;
-    (void)parity;
-    (void)stopbit;
-    
+{
     // Todo: fair des asserts
     //// Check databit compatibility
     //mp_assert(  (databit == MP_UART_DATA_7BITS) ||
@@ -331,30 +326,33 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     
     
     
-    uint32_t DataWidth = LL_USART_DATAWIDTH_8B;
-    //switch(databit)
-    //{
-        //case MP_UART_DATA_7BITS: DataWidth = LL_USART_DATAWIDTH_7B; break;
-        //case MP_UART_DATA_8BITS: DataWidth = LL_USART_DATAWIDTH_8B; break;
-        //case MP_UART_DATA_9BITS: DataWidth = LL_USART_DATAWIDTH_9B; break;
-        //default return -1;
-    //}
+    uint32_t DataWidth;
+    switch(databit)
+    {
+        case MP_UART_DATA_7BITS: DataWidth = LL_USART_DATAWIDTH_7B; break;
+        case MP_UART_DATA_8BITS: DataWidth = LL_USART_DATAWIDTH_8B; break;
+        case MP_UART_DATA_9BITS: DataWidth = LL_USART_DATAWIDTH_9B; break;
+        default: return -1;
+    }
     
-    uint32_t Parity = LL_USART_PARITY_NONE;
-    //switch(parity)
-    //{
-        //case MP_UART_PARITY_NO:   Parity = LL_USART_PARITY_NONE; break;
-        //case MP_UART_PARITY_ODD:  Parity = LL_USART_PARITY_ODD;  break;
-        //case MP_UART_PARITY_EVEN: Parity = LL_USART_PARITY_EVEN; break;
-        //default return -1;
-    //}
+    uint32_t Parity;
+    switch(parity)
+    {
+        case MP_UART_PARITY_NO:   Parity = LL_USART_PARITY_NONE; break;
+        case MP_UART_PARITY_ODD:  Parity = LL_USART_PARITY_ODD;  break;
+        case MP_UART_PARITY_EVEN: Parity = LL_USART_PARITY_EVEN; break;
+        default: return -1;
+    }
     
-    uint32_t StopBits = LL_USART_STOPBITS_1;
-    //switch(stopbit)
-    //{
-        //case MP_UART_STOPBIT_0_5: StopBits = LL_USART_STOPBITS_1; break;
-        //default return -1;
-    //}
+    uint32_t StopBits;
+    switch(stopbit)
+    {
+        case MP_UART_STOPBIT_0_5: StopBits = LL_USART_STOPBITS_0_5; break;
+        case MP_UART_STOPBIT_1:   StopBits = LL_USART_STOPBITS_1;   break;
+        case MP_UART_STOPBIT_1_5: StopBits = LL_USART_STOPBITS_1_5; break;
+        case MP_UART_STOPBIT_2:   StopBits = LL_USART_STOPBITS_2;   break;
+        default: return -1;
+    }
     
     /* (4) Configure USART functional parameters ********************************/
     

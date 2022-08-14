@@ -44,7 +44,7 @@ typedef struct
     mp_uart_t uart_parent;
     USART_TypeDef * const uartx;
     
-    char txBuf[512];
+    char txBuf[1024*2];
     unsigned int lenSend;
     unsigned int iSend;
 }mp_uart_port_t;
