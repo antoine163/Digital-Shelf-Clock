@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  * 
- * Copyright (c) 2022 Antoine Maleyrie
+ * Copyright (c) 2022 antoine163
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -103,9 +103,8 @@ int mp_uart_port_init(mp_device_id_t devid)
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
     
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // USART1
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // =================================
     #if defined(MP_USART1_RX_GPIO_Port) || defined(MP_USART1_TX_GPIO_Port)
     #ifndef USART1
     #error "MP_USART1_*** is defined in mpHardMap.h but the USART1 is not available on your stm32g0 !"
@@ -162,9 +161,8 @@ int mp_uart_port_init(mp_device_id_t devid)
     }
     #endif
     
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // USART2
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // =================================
     #if defined(MP_USART2_RX_GPIO_Port) || defined(MP_USART2_TX_GPIO_Port)
     #ifndef USART2
     #error "MP_USART2_*** is defined in mpHardMap.h but the USART2 is not available on your stm32g0 !"
@@ -234,9 +232,8 @@ int mp_uart_port_deinit(mp_device_id_t devid)
     // Disable usart
     LL_LPUART_Disable(uartx);
     
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // USART1
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // =================================
     #if defined(USART1_RX_GPIO_Port) || defined(USART1_TX_GPIO_Port)
     if(uartx == USART1)
     {
@@ -264,9 +261,8 @@ int mp_uart_port_deinit(mp_device_id_t devid)
     }
     #endif
     
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // USART2
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // =================================
     #if defined(USART2_RX_GPIO_Port) || defined(USART2_TX_GPIO_Port)
     if(uartx == USART2)
     {
@@ -392,9 +388,7 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     
     /* Polling USART initialisation */
     //while ((!(LL_USART_IsActiveFlag_TEACK(uartx))) || (!(LL_USART_IsActiveFlag_REACK(uartx))))
-    while ( !LL_USART_IsActiveFlag_TEACK(uartx) )
-    { 
-    }
+    while ( !LL_USART_IsActiveFlag_TEACK(uartx) );
     
     return 0;
 }

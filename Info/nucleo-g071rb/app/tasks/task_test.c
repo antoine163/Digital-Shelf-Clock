@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  * 
- * Copyright (c) 2022 Antoine Maleyrie
+ * Copyright (c) 2022 antoine163
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,10 @@
 //#include "FreeRTOS.h"
 //#include "task.h"
 
-//Driver from mpLib
+// Utils from mpLib
+#include "mp/utils/fifo.h"
+
+// Driver from mpLib
 #include "mp/drivers/interrupt.h"
 #include "mp/drivers/gpio.h"
 #include "mp/drivers/uart.h"
@@ -92,11 +95,12 @@ unsigned char digit[] = {0xc0,   //0
 void ws2812b_update();
 int ws2812b_update_led = 0;
 volatile uint8_t brightness_led = 10;
-volatile int32_t write_led_index = 0;
+volatile int32_t write_led_index = 15;
 volatile uint32_t write_led_cmpUp = 1;
 void task_test( void* pvParameters )
 {
-    (void)pvParameters;
+    (void)pvParameters;  
+    
     
     // Init gpios
     mp_gpio_init(dev_gpioa);
@@ -141,41 +145,41 @@ void task_test( void* pvParameters )
     mp_uart_printf(dev_tty, "nucleo-g071rb inisilised !\r\n");
     
 #if 1
-    //int cpt = 0;
+    int cpt = 0;
     while(1)
     {
-        ////vTaskDelay(450 / portTICK_PERIOD_MS);
-        //LL_mDelay(450);
-        //mp_gpio_up(PIN_LED_GREEN);
-        //mp_gpio_toggle(PIN_LED_YELLOW);
-        //mp_gpio_up(LED_GREEN);
+        //vTaskDelay(450 / portTICK_PERIOD_MS);
+        LL_mDelay(450);
+        mp_gpio_up(PIN_LED_GREEN);
+        mp_gpio_toggle(PIN_LED_YELLOW);
+        mp_gpio_up(LED_GREEN);
         
-        ////vTaskDelay(50 / portTICK_PERIOD_MS);
-        //LL_mDelay(50);
-        //mp_gpio_down(PIN_LED_GREEN);
-        //mp_gpio_toggle(PIN_LED_YELLOW);
-        //mp_gpio_down(LED_GREEN);
+        //vTaskDelay(50 / portTICK_PERIOD_MS);
+        LL_mDelay(50);
+        mp_gpio_down(PIN_LED_GREEN);
+        mp_gpio_toggle(PIN_LED_YELLOW);
+        mp_gpio_down(LED_GREEN);
         
-        ////mp_uart_printf(drv_uart1, "Hello:%u:%u\r\n", cpt, cpt2);
-        //cpt++;
-        //if(cpt >= (int)sizeof(digit))
-            //cpt = 0;
+        //mp_uart_printf(drv_uart1, "Hello:%u:%u\r\n", cpt, cpt2);
+        cpt++;
+        if(cpt >= (int)sizeof(digit))
+            cpt = 0;
         
         
-        //unsigned int val = mp_gpio_getValue(PIN_BP_LED);
-        //mp_gpio_setValue(PIN_LED_RED, val);
+        unsigned int val = mp_gpio_getValue(PIN_BP_LED);
+        mp_gpio_setValue(PIN_LED_RED, val);
         
-        ////mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
-        //mp_gpio_setLevel(AFF_7SEG, digit[cpt2]);
+        //mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
+        mp_gpio_setLevel(AFF_7SEG, digit[cpt2]);
         
-        //mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u", cpt, cpt2);
-        //LL_mDelay(100);
-        //mp_uart_printf(dev_tty, "\tbrightness_led:%u\r\n", brightness_led);
+        mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u", cpt, cpt2);
+        LL_mDelay(100);
+        mp_uart_printf(dev_tty, "\tbrightness_led:%u\r\n", brightness_led);
         
         
         
         ws2812b_update();
-        LL_mDelay(8);
+        //LL_mDelay(8);
         
         
         //if (ws2812b_update_led)

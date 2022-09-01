@@ -1,8 +1,8 @@
 ########################################################################
 #
-#   Makfile for self_clock.
+#   Makfile for self clock.
 #
-# - author  : Antoine Maleyrie
+# - author  : antoine163
 # - date    : 19.03.2022
 #
 ########################################################################
@@ -54,14 +54,14 @@ RLDFLAGS =
 # Debug flags additional for ASM 
 DASFLAGS =
 # Debug flags additional for C 
-DCFLAGS  = -g3
+DCFLAGS  = -Og -g3
 # Debug flags additional for linkage 
 DLDFLAGS = 
 
 ##
 ## End define flags
 #################################
-#PROGRAM_IN = SRAM
+PROGRAM_IN = FLASH
 # Linker script file
 ifeq ($(PROGRAM_IN),SRAM)
 	LDSCRIPT = linker/stm32g071rbtx_sram.ld
@@ -84,6 +84,7 @@ CSRC += drivers/stm32g0xx_hal_driver/Src/stm32g0xx_ll_utils.c
 
 ## mpLib source files
 CSRC += mpLib/mp.c
+CSRC += mpLib/utils/fifo.c
 CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_interrupt_port.c
 CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_gpio_port.c
 CSRC += mpLib/portable/FreeRtos/stm32g0xx/mp_uart_port.c
@@ -266,9 +267,15 @@ cgdb:debug
 minicom:
 	minicom -b 115200 -D /dev/ttyACM0 -c on
 	
+# Build documentation with doxygen
+doc:
+	cd mpLib/doc/ && doxygen Doxyfile
+	
+cleandoc:
+	rm -fr mpLib/doc/html/
 	
 # Clean projet
-clean:
+clean: cleandoc
 	rm -fr $(OBJS)
 	rm -f *.elf
 	rm -f *.map
