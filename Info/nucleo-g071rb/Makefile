@@ -54,7 +54,8 @@ RLDFLAGS =
 # Debug flags additional for ASM 
 DASFLAGS =
 # Debug flags additional for C 
-DCFLAGS  = -Og -g3
+#DCFLAGS  = -Og -g3
+DCFLAGS  = -g3
 # Debug flags additional for linkage 
 DLDFLAGS = 
 

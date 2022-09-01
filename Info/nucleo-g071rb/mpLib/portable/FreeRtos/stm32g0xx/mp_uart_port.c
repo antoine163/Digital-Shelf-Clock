@@ -102,6 +102,7 @@ int mp_uart_port_init(mp_device_id_t devid)
 {
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
+    uint32_t transferDirection;
     
     // USART1
     // =================================
@@ -111,7 +112,11 @@ int mp_uart_port_init(mp_device_id_t devid)
     #endif
     if (uartx == USART1)
     {
+        transferDirection = LL_LPUART_DIRECTION_NONE;
+        
         #ifdef MP_USART1_RX_GPIO_Port
+            transferDirection |= LL_LPUART_DIRECTION_RX;
+        
             // Configure RX Pin as : Alternate function
             LL_GPIO_SetPinMode(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, LL_GPIO_MODE_ALTERNATE);
             if(MP_USART1_RX_Pin <= LL_GPIO_PIN_7)
@@ -120,9 +125,17 @@ int mp_uart_port_init(mp_device_id_t devid)
                 LL_GPIO_SetAFPin_8_15(  MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_AF);
             LL_GPIO_SetPinSpeed(        MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_SPEED);
             LL_GPIO_SetPinPull(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_PULL);
+            
+            // Init Rx FiFo
+            static mp_fifo_t uart1FifoRx;
+            static uint8_t uart1FifoRxStorageBuffer[MP_USART1_RX_FIFO_SIZE];
+            mp_fifo_init(&uart1FifoRx, uart1FifoRxStorageBuffer, MP_USART1_RX_FIFO_SIZE);
+            dev->fifoRx = &uart1FifoRx;
         #endif
         
         #ifdef MP_USART1_TX_GPIO_Port
+            transferDirection |= LL_LPUART_DIRECTION_TX;
+            
             // Configure TX Pin as : Alternate function
             LL_GPIO_SetPinMode(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, LL_GPIO_MODE_ALTERNATE);
             if(MP_USART1_TX_Pin <= LL_GPIO_PIN_7)
@@ -132,6 +145,12 @@ int mp_uart_port_init(mp_device_id_t devid)
             LL_GPIO_SetPinSpeed(        MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_SPEED);
             LL_GPIO_SetPinOutputType(   MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_OUTPUT);
             LL_GPIO_SetPinPull(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_PULL);
+            
+            // Init Tx FiFo
+            static mp_fifo_t uart1FifoTx;
+            static uint8_t uart1FifoTxStorageBuffer[MP_USART1_TX_FIFO_SIZE];
+            mp_fifo_init(&uart1FifoTx, uart1FifoTxStorageBuffer, MP_USART1_TX_FIFO_SIZE);
+            dev->fifoTx = &uart1FifoTx;
         #endif
         
         // Enable the USART1 peripheral clock and clock source.
@@ -143,6 +162,8 @@ int mp_uart_port_init(mp_device_id_t devid)
         // Save pointer of usart device.
         _mp_uart_port_usart1_dev = dev;
         
+        // Set TX/RX direction
+        LL_LPUART_SetTransferDirection(USART1, transferDirection);
         
         #ifdef MP_USART1_RX_PIN_LEVEL
         LL_USART_SetRXPinLevel(USART1, MP_USART1_RX_PIN_LEVEL);
@@ -153,8 +174,8 @@ int mp_uart_port_init(mp_device_id_t devid)
         #endif
         
         #ifdef MP_USART1_RX_GPIO_Port
-            // Enable RXNE and Error interrupts.
-            LL_USART_EnableIT_RXNE_RXFNE(USART1);
+        // Enable RXNE and Error interrupts.
+        LL_USART_EnableIT_RXNE_RXFNE(USART1);
         #endif
         
         return 0;
@@ -169,7 +190,11 @@ int mp_uart_port_init(mp_device_id_t devid)
     #endif
     if (uartx == USART2)
     {
+        transferDirection = LL_LPUART_DIRECTION_NONE;
+        
         #ifdef MP_USART2_RX_GPIO_Port
+            transferDirection |= LL_LPUART_DIRECTION_RX;
+            
             // Configure RX Pin as : Alternate function
             LL_GPIO_SetPinMode(         MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, LL_GPIO_MODE_ALTERNATE);
             if(MP_USART2_RX_Pin <= LL_GPIO_PIN_7)
@@ -178,9 +203,17 @@ int mp_uart_port_init(mp_device_id_t devid)
                 LL_GPIO_SetAFPin_8_15(  MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_AF);
             LL_GPIO_SetPinSpeed(        MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_SPEED);
             LL_GPIO_SetPinPull(         MP_USART2_RX_GPIO_Port, MP_USART2_RX_Pin, MP_USART2_RX_PULL);
+            
+            // Init Rx FiFo
+            static mp_fifo_t uart2FifoRx;
+            static uint8_t uart2FifoRxStorageBuffer[MP_USART2_RX_FIFO_SIZE];
+            mp_fifo_init(&uart2FifoRx, uart2FifoRxStorageBuffer, MP_USART2_RX_FIFO_SIZE);
+            dev->fifoRx = &uart2FifoRx;
         #endif
         
         #ifdef MP_USART2_TX_GPIO_Port
+            transferDirection |= LL_LPUART_DIRECTION_TX;
+            
             // Configure TX Pin as : Alternate function
             LL_GPIO_SetPinMode(         MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, LL_GPIO_MODE_ALTERNATE);
             if(MP_USART2_TX_Pin <= LL_GPIO_PIN_7)
@@ -190,6 +223,12 @@ int mp_uart_port_init(mp_device_id_t devid)
             LL_GPIO_SetPinSpeed(        MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_SPEED);
             LL_GPIO_SetPinOutputType(   MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_OUTPUT);
             LL_GPIO_SetPinPull(         MP_USART2_TX_GPIO_Port, MP_USART2_TX_Pin, MP_USART2_TX_PULL);
+            
+            // Init Tx FiFo
+            static mp_fifo_t uart2FifoTx;
+            static uint8_t uart2FifoTxStorageBuffer[MP_USART2_TX_FIFO_SIZE];
+            mp_fifo_init(&uart2FifoTx, uart2FifoTxStorageBuffer, MP_USART2_TX_FIFO_SIZE);
+            dev->fifoTx = &uart2FifoTx;
         #endif
         
         // Enable the USART2 peripheral clock and clock source.
@@ -201,6 +240,9 @@ int mp_uart_port_init(mp_device_id_t devid)
         // Save pointer of usart device.
         _mp_uart_port_usart2_dev = dev;
         
+        // Set TX/RX direction
+        LL_LPUART_SetTransferDirection(USART2, transferDirection);
+        
         #ifdef MP_USART2_RX_PIN_LEVEL
         LL_USART_SetRXPinLevel(USART2, MP_USART2_RX_PIN_LEVEL);
         #endif
@@ -210,8 +252,8 @@ int mp_uart_port_init(mp_device_id_t devid)
         #endif
         
         #ifdef MP_USART2_RX_GPIO_Port
-            // Enable RXNE and Error interrupts.
-            LL_USART_EnableIT_RXNE_RXFNE(USART2);
+        // Enable RXNE and Error interrupts.
+        LL_USART_EnableIT_RXNE_RXFNE(USART2);
         #endif
         
         return 0;
@@ -228,7 +270,7 @@ int mp_uart_port_deinit(mp_device_id_t devid)
     
     // Disable RXNE and Error interrupts.
     LL_USART_DisableIT_RXNE_RXFNE(uartx);
-        
+    
     // Disable usart
     LL_LPUART_Disable(uartx);
     
@@ -241,7 +283,7 @@ int mp_uart_port_deinit(mp_device_id_t devid)
         _mp_uart_port_usart1_dev = NULL;
         
         // Disable the USART1 peripheral clock and clock source.
-        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+        LL_APB2_GRP1_DisableClock(LL_APB2_GRP1_PERIPH_USART1);
         
         #ifdef USART1_RX_GPIO_Port
             // Configure RX Pin as : Analog input.
@@ -358,14 +400,10 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     
     /* TX/RX direction */
     //LL_USART_SetTransferDirection(uartx, LL_USART_DIRECTION_TX_RX);
-    LL_USART_SetTransferDirection(uartx, LL_USART_DIRECTION_TX);
+    //LL_USART_SetTransferDirection(uartx, LL_USART_DIRECTION_TX);
     
     /* 8 data bit, 1 start bit, 1 stop bit, no parity */
     LL_USART_ConfigCharacter(uartx, DataWidth, Parity, StopBits);
-    
-    /* No Hardware Flow control */
-    /* Reset value is LL_USART_HWCONTROL_NONE */
-    // LL_USART_SetHWFlowCtrl(drv->dev, LL_USART_HWCONTROL_NONE);
     
     /* Oversampling by 16 */
     /* Reset value is LL_USART_OVERSAMPLING_16 */
@@ -388,27 +426,24 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     
     /* Polling USART initialisation */
     //while ((!(LL_USART_IsActiveFlag_TEACK(uartx))) || (!(LL_USART_IsActiveFlag_REACK(uartx))))
-    while ( !LL_USART_IsActiveFlag_TEACK(uartx) );
+    //while ( !LL_USART_IsActiveFlag_TEACK(uartx) );
     
     return 0;
 }
 
-int mp_uart_port_write(mp_device_id_t devid, const void *buf, size_t nbyte)
+int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
 {
+    if (nbyte == 0)
+        return 0;
+        
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
     
-    memcpy(dev->txBuf, buf, nbyte);
-    dev->lenSend = nbyte;
-    dev->iSend = 0;
-    
-    ///* Start USART transmission : Will initiate TXE interrupt after TDR register is empty */
-    //LL_USART_TransmitData8(uartx, dev->txBuf[0]); 
-    
-    /* Enable TXE interrupt */
+    LL_USART_DisableIT_TXE_TXFNF(uartx);
+    int n = mp_fifo_push(dev->fifoTx, buf, nbyte);
     LL_USART_EnableIT_TXE_TXFNF(uartx);
     
-    return 0;
+    return n;
 }
 
 int mp_uart_port_read(mp_device_id_t devid, void *buf, size_t nbyte)

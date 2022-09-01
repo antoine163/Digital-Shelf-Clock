@@ -138,7 +138,7 @@ void task_test( void* pvParameters )
     //mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
     //ws2812b_reset();
     LL_mDelay(1);
-    ws2812b_update();
+    //ws2812b_update();
     
     mp_uart_init(dev_tty);
     mp_uart_config(dev_tty, 115200, 8, 0, 1);
@@ -150,13 +150,13 @@ void task_test( void* pvParameters )
     {
         //vTaskDelay(450 / portTICK_PERIOD_MS);
         LL_mDelay(450);
-        mp_gpio_up(PIN_LED_GREEN);
+        //mp_gpio_up(PIN_LED_GREEN);
         mp_gpio_toggle(PIN_LED_YELLOW);
         mp_gpio_up(LED_GREEN);
         
         //vTaskDelay(50 / portTICK_PERIOD_MS);
         LL_mDelay(50);
-        mp_gpio_down(PIN_LED_GREEN);
+        //mp_gpio_down(PIN_LED_GREEN);
         mp_gpio_toggle(PIN_LED_YELLOW);
         mp_gpio_down(LED_GREEN);
         
@@ -178,7 +178,7 @@ void task_test( void* pvParameters )
         
         
         
-        ws2812b_update();
+        //ws2812b_update();
         //LL_mDelay(8);
         
         
@@ -272,36 +272,33 @@ void ws2812b_update()
     }
     
     
-    uint8_t buf[1024*2];
-    int iBuf = 0;
+    uint8_t color;
     
     for (int iColorLed=0; iColorLed<NB_LED; iColorLed++)
     {
         for (int iByte=23; iByte>=0;)
         {
-            buf[iBuf] = 0xff;
+            color = 0xff;
             
             if (colorLeds[iColorLed] & (1<<iByte))
-                buf[iBuf] &= CODE1_1;
+                color &= CODE1_1;
             else
-                buf[iBuf] &= CODE1_0;
+                color &= CODE1_0;
             iByte--;
             if (colorLeds[iColorLed] & (1<<iByte))
-                buf[iBuf] &= CODE2_1;
+                color &= CODE2_1;
             else
-                buf[iBuf] &= CODE2_0;
+                color &= CODE2_0;
             iByte--;
             if (colorLeds[iColorLed] & (1<<iByte))
-                buf[iBuf] &= CODE3_1;
+                color &= CODE3_1;
             else
-                buf[iBuf] &= CODE3_0;
+                color &= CODE3_0;
             iByte--;
 
-            iBuf++;
+            mp_uart_write(dev_ws2812b, &color, 1);
         }
     }
-    
-    mp_uart_write(dev_ws2812b, buf, iBuf+1);
 }
 
 //void ws2812b_test()

@@ -34,6 +34,9 @@
 #include <stm32g0xx_ll_usart.h>
 #include <stm32g0xx_ll_lpuart.h>
 
+// mpLib
+#include "mp/utils/fifo.h"
+
 // Define macro ----------------------------------------------------------------
 #define MP_PORT_UART(dev)           ((mp_uart_port_t *)dev)
 #define MP_PORT_UART_GET(devid)     MP_PORT_UART(mp_device_get(devid))
@@ -43,10 +46,8 @@ typedef struct
 {
     mp_uart_t uart_parent;
     USART_TypeDef * const uartx;
-    
-    char txBuf[1024*2];
-    unsigned int lenSend;
-    unsigned int iSend;
+    mp_fifo_t * fifoRx;
+    mp_fifo_t * fifoTx;
 }mp_uart_port_t;
 
 // Extern protected global variables -------------------------------------------
@@ -71,7 +72,7 @@ int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap);
 
 //int mp_uart_port_flush(mp_device_id_t devid); ...
 
-
+#include "mp/drivers/gpio.h"
 // Static inline ISR -----------------------------------------------------------
 __attribute__((always_inline))
 static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
@@ -80,23 +81,18 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
     
     if (LL_USART_IsEnabledIT_TXE_TXFNF(uartx) && LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
     {
-        /* TXE flag will be automatically cleared when writing new data in TDR register */
-    
-        /* Call function in charge of handling empty DR => will lead to transmission of next character */
-        //USART_TXEmpty_Callback();
+        mp_gpio_up(PIN_LED_GREEN);
         
-        if (dev->iSend >= dev->lenSend -1)
-        {
-            /* Disable TXE interrupt */
+        // Fill TDR with a new byte from Tx FiFo
+        uint8_t byte;
+        MP_FIFO_POP_BYTE(dev->fifoTx, &byte);
+        LL_USART_TransmitData8(uartx, byte);
+        
+        // Disable TXE interrupt if Tx FiFo in empty
+        if (mp_fifo_isEmpty(dev->fifoTx))
             LL_USART_DisableIT_TXE_TXFNF(uartx);
-          
-            ///* Enable TC interrupt */
-            //LL_USART_EnableIT_TC(uartx);
-        }
-
-        /* Fill TDR with a new char */
-        LL_USART_TransmitData8(uartx, dev->txBuf[dev->iSend]);
-        dev->iSend++;
+            
+        mp_gpio_down(PIN_LED_GREEN);
     }
     
     //if (LL_USART_IsEnabledIT_TC(uartx) && LL_USART_IsActiveFlag_TC(uartx))
