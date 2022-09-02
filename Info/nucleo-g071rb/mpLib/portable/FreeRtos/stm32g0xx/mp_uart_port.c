@@ -451,15 +451,50 @@ int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
     // USART in FiFo mode ?
     if (LL_USART_IsEnabledFIFO(uartx)) // Yes
     {
+        // Disable TXFE interrupt to to avoid conflict with the Tx FiFo
         LL_USART_DisableIT_TXFE(uartx);
+        
+        // If the FiFo is empty we can priming the transfer.
+        bool startTx = mp_fifo_isEmpty(dev->fifoTx);
+            
         n = mp_fifo_push(dev->fifoTx, buf, nbyte);
-        LL_USART_EnableIT_TXFE(uartx);
+        
+        if (startTx && LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
+        {
+            // While USART FiFo is not full we can fill TDR.
+            do
+            {
+                uint8_t byte;
+                MP_FIFO_POP_BYTE(dev->fifoTx, &byte);
+                LL_USART_TransmitData8(uartx, byte);
+            }
+            while(  LL_USART_IsActiveFlag_TXE_TXFNF(uartx) &&
+                    !mp_fifo_isEmpty(dev->fifoTx));
+                
+        }
+        
+        if (!mp_fifo_isEmpty(dev->fifoTx))
+            LL_USART_EnableIT_TXFE(uartx);
     }
     else // No
     {
+        // Disable TXE interrupt to to avoid conflict with the Tx FiFo
         LL_USART_DisableIT_TXE_TXFNF(uartx);
+        
+        // If the FiFo is empty we can priming the transfer.
+        bool txPriming = mp_fifo_isEmpty(dev->fifoTx);
+        
         n = mp_fifo_push(dev->fifoTx, buf, nbyte);
-        LL_USART_EnableIT_TXE_TXFNF(uartx);
+        
+        if (txPriming && LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
+        {
+            uint8_t byte;
+            MP_FIFO_POP_BYTE(dev->fifoTx, &byte);
+            LL_USART_TransmitData8(uartx, byte);
+        }
+        
+        if (!mp_fifo_isEmpty(dev->fifoTx))
+            LL_USART_EnableIT_TXE_TXFNF(uartx);
     }
     
     return n;

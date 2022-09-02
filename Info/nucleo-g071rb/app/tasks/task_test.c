@@ -172,15 +172,7 @@ void task_test( void* pvParameters )
         //mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
         mp_gpio_setLevel(AFF_7SEG, digit[cpt2]);
         
-        mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u", cpt, cpt2);
-        LL_mDelay(100);
-        mp_uart_printf(dev_tty, "\tbrightness_led:%u\r\n", brightness_led);
-        //int testval = 0b01010101;
-        //mp_uart_write(dev_tty, &testval, 1);
-        
-        
-        //int testval[8] = {0b01010101};
-        //mp_uart_write(dev_tty, testval, 1);
+        mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u\tbrightness_led:%u\r\n", cpt, cpt2, brightness_led);
         
         
         
