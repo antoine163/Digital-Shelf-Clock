@@ -72,7 +72,6 @@ int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap);
 
 //int mp_uart_port_flush(mp_device_id_t devid); ...
 
-#include "mp/drivers/gpio.h"
 // Static inline ISR -----------------------------------------------------------
 __attribute__((always_inline))
 static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
@@ -123,24 +122,19 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
 __attribute__((always_inline))
 static inline void mp_uart_port_usart1_isr()
 {
-mp_gpio_up(PIN_LED_RED);
     if (IS_UART_FIFO_INSTANCE(USART1))
         mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart1_dev);
     else
         mp_uart_port_usartx_isr(_mp_uart_port_usart1_dev);
-mp_gpio_down(PIN_LED_RED);
 }
 
 __attribute__((always_inline))
 static inline void mp_uart_port_usart2_isr()
 {
-mp_gpio_up(PIN_LED_GREEN);
     if (IS_UART_FIFO_INSTANCE(USART2))
         mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart2_dev);
     else
         mp_uart_port_usartx_isr(_mp_uart_port_usart2_dev);
-    
-mp_gpio_down(PIN_LED_GREEN);
 }
 
 #endif // MP_UART_PORT_H
