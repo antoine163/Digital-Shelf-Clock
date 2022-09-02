@@ -95,7 +95,7 @@ unsigned char digit[] = {0xc0,   //0
 void ws2812b_update();
 int ws2812b_update_led = 0;
 volatile uint8_t brightness_led = 10;
-volatile int32_t write_led_index = 15;
+volatile int32_t write_led_index = 10;
 volatile uint32_t write_led_cmpUp = 1;
 void task_test( void* pvParameters )
 {
@@ -138,7 +138,7 @@ void task_test( void* pvParameters )
     //mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
     //ws2812b_reset();
     LL_mDelay(1);
-    //ws2812b_update();
+    ws2812b_update();
     
     mp_uart_init(dev_tty);
     mp_uart_config(dev_tty, 115200, 8, 0, 1);
@@ -166,8 +166,8 @@ void task_test( void* pvParameters )
             cpt = 0;
         
         
-        unsigned int val = mp_gpio_getValue(PIN_BP_LED);
-        mp_gpio_setValue(PIN_LED_RED, val);
+        //unsigned int val = mp_gpio_getValue(PIN_BP_LED);
+        //mp_gpio_setValue(PIN_LED_RED, val);
         
         //mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
         mp_gpio_setLevel(AFF_7SEG, digit[cpt2]);
@@ -175,11 +175,17 @@ void task_test( void* pvParameters )
         mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u", cpt, cpt2);
         LL_mDelay(100);
         mp_uart_printf(dev_tty, "\tbrightness_led:%u\r\n", brightness_led);
+        //int testval = 0b01010101;
+        //mp_uart_write(dev_tty, &testval, 1);
+        
+        
+        //int testval[8] = {0b01010101};
+        //mp_uart_write(dev_tty, testval, 1);
         
         
         
-        //ws2812b_update();
-        //LL_mDelay(8);
+        ws2812b_update();
+        LL_mDelay(8);
         
         
         //if (ws2812b_update_led)

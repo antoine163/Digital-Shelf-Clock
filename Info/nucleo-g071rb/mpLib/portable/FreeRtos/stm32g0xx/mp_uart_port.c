@@ -86,6 +86,10 @@ mp_uart_port_t * _mp_uart_port_lpuart2_dev = NULL;
  * - USART3_4_LPUART1
  * 
  */
+ 
+ // If the USART is compatible with FiFo mode this will be enable.
+    // This allows to reduce the number of interruption to receive/transfer 
+    // the data.
 
 /**
  * @ingroup port_stm32g0x
@@ -173,10 +177,10 @@ int mp_uart_port_init(mp_device_id_t devid)
         LL_USART_SetTXPinLevel(USART1, MP_USART1_TX_PIN_LEVEL);
         #endif
         
-        #ifdef MP_USART1_RX_GPIO_Port
-        // Enable RXNE and Error interrupts.
-        LL_USART_EnableIT_RXNE_RXFNE(USART1);
-        #endif
+        //#ifdef MP_USART1_RX_GPIO_Port
+        //// Enable RXNE and Error interrupts.
+        //LL_USART_EnableIT_RXNE_RXFNE(USART1);
+        //#endif
         
         return 0;
     }
@@ -251,10 +255,10 @@ int mp_uart_port_init(mp_device_id_t devid)
         LL_USART_SetTXPinLevel(USART2, MP_USART2_TX_PIN_LEVEL);
         #endif
         
-        #ifdef MP_USART2_RX_GPIO_Port
-        // Enable RXNE and Error interrupts.
-        LL_USART_EnableIT_RXNE_RXFNE(USART2);
-        #endif
+        //#ifdef MP_USART2_RX_GPIO_Port
+        //// Enable RXNE and Error interrupts.
+        //LL_USART_EnableIT_RXNE_RXFNE(USART2);
+        //#endif
         
         return 0;
     }
@@ -421,6 +425,10 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     //LL_USART_SetBaudRate(uartx, SystemCoreClock, LL_USART_PRESCALER_DIV1, LL_USART_OVERSAMPLING_16, (uint32_t)baudrate); 
     // Todo activer ou pas LL_USART_OVERSAMPLING_16
     
+    // Enable a FiFo mode is the USART is compatible.
+    if (IS_UART_FIFO_INSTANCE(uartx))
+        LL_USART_EnableFIFO(uartx);
+    
     /* (5) Enable USART *********************************************************/
     LL_USART_Enable(uartx);
     
@@ -438,10 +446,21 @@ int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
         
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
+    int n = 0;
     
-    LL_USART_DisableIT_TXE_TXFNF(uartx);
-    int n = mp_fifo_push(dev->fifoTx, buf, nbyte);
-    LL_USART_EnableIT_TXE_TXFNF(uartx);
+    // USART in FiFo mode ?
+    if (LL_USART_IsEnabledFIFO(uartx)) // Yes
+    {
+        LL_USART_DisableIT_TXFE(uartx);
+        n = mp_fifo_push(dev->fifoTx, buf, nbyte);
+        LL_USART_EnableIT_TXFE(uartx);
+    }
+    else // No
+    {
+        LL_USART_DisableIT_TXE_TXFNF(uartx);
+        n = mp_fifo_push(dev->fifoTx, buf, nbyte);
+        LL_USART_EnableIT_TXE_TXFNF(uartx);
+    }
     
     return n;
 }

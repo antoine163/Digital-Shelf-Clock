@@ -37,7 +37,7 @@ THUMB = -mthumb
 # User flags for ASM 
 UASFLAGS =
 # Default flags for C 
-UCFLAGS  = -std=gnu99 -W -Wall -Wextra
+UCFLAGS  = -std=gnu17 -W -Wall -Wextra
 UCFLAGS += -fmessage-length=0 -fdata-sections -ffunction-sections
 # Default flags for linkage
 ULDFLAGS = -Wl,-Map=$(TARGET).map,--gc-sections -specs=nano.specs -lc -lnosys

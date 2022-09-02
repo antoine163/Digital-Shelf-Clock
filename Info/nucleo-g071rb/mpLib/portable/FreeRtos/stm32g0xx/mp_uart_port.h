@@ -72,62 +72,69 @@ int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap);
 
 //int mp_uart_port_flush(mp_device_id_t devid); ...
 
-#include "mp/drivers/gpio.h"
 // Static inline ISR -----------------------------------------------------------
+__attribute__((always_inline))
+static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
+{
+    USART_TypeDef * uartx = dev->uartx;
+
+    // The USART Tx FiFo is empty ?
+    if (    LL_USART_IsEnabledIT_TXFE(uartx)    &&
+            LL_USART_IsActiveFlag_TXFE(uartx))
+    {
+        // Fill TDR with a new bytes from the data Tx FiFo than the USART Tx
+        // FiFo is not full and the data Tx FiFo is not empty.
+        do
+        {
+            uint8_t byte;
+            MP_FIFO_POP_BYTE(dev->fifoTx, &byte);
+            LL_USART_TransmitData8(uartx, byte);
+        }
+        while(  LL_USART_IsActiveFlag_TXE_TXFNF(uartx) &&
+                !mp_fifo_isEmpty(dev->fifoTx));
+        
+        // Disable USART Tx FiFo empty interrupt if the data Tx FiFo is empty.
+        if (mp_fifo_isEmpty(dev->fifoTx))
+            LL_USART_DisableIT_TXFE(uartx);
+    }
+}
+
 __attribute__((always_inline))
 static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
 {
     USART_TypeDef * uartx = dev->uartx;
-    
-    if (LL_USART_IsEnabledIT_TXE_TXFNF(uartx) && LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
+
+    // The USART Transmit Data Register is empty ?
+    if (    LL_USART_IsEnabledIT_TXE_TXFNF(uartx)   &&
+            LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
     {
-        mp_gpio_up(PIN_LED_GREEN);
-        
-        // Fill TDR with a new byte from Tx FiFo
+        // Fill TDR with a new byte from Tx FiFo.
         uint8_t byte;
         MP_FIFO_POP_BYTE(dev->fifoTx, &byte);
         LL_USART_TransmitData8(uartx, byte);
         
-        // Disable TXE interrupt if Tx FiFo in empty
+        // Disable TXE interrupt if Tx FiFo in empty.
         if (mp_fifo_isEmpty(dev->fifoTx))
             LL_USART_DisableIT_TXE_TXFNF(uartx);
-            
-        mp_gpio_down(PIN_LED_GREEN);
     }
-    
-    //if (LL_USART_IsEnabledIT_TC(uartx) && LL_USART_IsActiveFlag_TC(uartx))
-    //{
-        ///* Clear TC flag */
-        //LL_USART_ClearFlag_TC(uartx);
-        ///* Call function in charge of handling end of transmission of sent character
-        //and prepare next character transmission */
-        ////USART_CharTransmitComplete_Callback();
-        
-        ///* Disable TC interrupt */
-        //LL_USART_DisableIT_TC(uartx);
-    //}
-    
-    //if (LL_USART_IsEnabledIT_ERROR(uartx) && LL_USART_IsActiveFlag_NE(uartx))
-    //{
-        /* Call Error function */
-        //Error_Callback();
-        
-        /* Disable USARTx_IRQn */
-        //NVIC_DisableIRQ(USART2_IRQn);
-        //mp_port_irq_disable(usart);
-    //}
 }
 
 __attribute__((always_inline))
 static inline void mp_uart_port_usart1_isr()
 {
-    mp_uart_port_usartx_isr(_mp_uart_port_usart1_dev);
+    if (IS_UART_FIFO_INSTANCE(USART1))
+        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart1_dev);
+    else
+        mp_uart_port_usartx_isr(_mp_uart_port_usart1_dev);
 }
 
 __attribute__((always_inline))
 static inline void mp_uart_port_usart2_isr()
 {
-    mp_uart_port_usartx_isr(_mp_uart_port_usart2_dev);
+    if (IS_UART_FIFO_INSTANCE(USART2))
+        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart2_dev);
+    else
+        mp_uart_port_usartx_isr(_mp_uart_port_usart2_dev);
 }
 
 #endif // MP_UART_PORT_H
