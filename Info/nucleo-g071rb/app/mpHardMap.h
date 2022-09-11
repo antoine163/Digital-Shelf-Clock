@@ -77,12 +77,12 @@
 
 
 #define MP_INTERRUPT_TABLE                                             \
-    /*      vector,           priority, handlers                     */\
-    MP_INT_ISR( USART1,       1,        mp_uart_port_usart1_isr())     \
-    MP_INT_ISR( USART2,       3,        mp_uart_port_usart2_isr())     \
-    MP_INT_ISR( EXTI0_1,      3,        mp_gpio_port_exti0_1_isr())    \
-    MP_INT_ISR( EXTI2_3,      3,        mp_gpio_port_exti2_3_isr())    \
-    MP_INT_ISR( EXTI4_15,     3,        mp_gpio_port_exti4_15_isr())
+    /*          vector,   priority, irq                              */\
+    MP_INT_ISR( USART1,   1,        mp_uart_port_usart1_isr())         \
+    MP_INT_ISR( USART2,   3,        mp_uart_port_usart2_isr())         \
+    MP_INT_ISR( EXTI0_1,  3,        mp_gpio_port_exti0_1_isr())        \
+    MP_INT_ISR( EXTI2_3,  3,        mp_gpio_port_exti2_3_isr())        \
+    MP_INT_ISR( EXTI4_15, 3,        mp_gpio_port_exti4_15_isr())
     
 
 #endif // MP_HARD_MAP_H

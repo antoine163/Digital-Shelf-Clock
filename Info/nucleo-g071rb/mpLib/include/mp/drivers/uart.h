@@ -85,7 +85,13 @@ typedef enum
     MP_UART_STOPBIT_2       //!< 2 stop bit.
 }mp_uart_stopbit_t;
 
-#undef MP_UART_SET_ENUM_VALUE_FROM_PORT
+// Define ----------------------------------------------------------------------
+#define MP_UART_CTL_TX_TIMEOUT  0
+#define MP_UART_CTL_RX_TIMEOUT  1
+//#define MP_UART_CTL_RX_MODE_BYTE   2
+//#define MP_UART_CTL_RX_MODE_FRAME  3
+
+#define MP_UART_TIMEOUT_MAX  (unsigned int)(-1)
 
 // Structure -------------------------------------------------------------------
 typedef struct
@@ -170,9 +176,9 @@ static inline int mp_uart_config(mp_device_id_t devid,
     return ret;
 }
 
-static inline int mp_uart_write(mp_device_id_t devid,  void const * buf, size_t nbyte)
+static inline ssize_t mp_uart_write(mp_device_id_t devid,  void const * buf, size_t nbyte)
 {
-    int ret = -1;
+    ssize_t ret = -1;
     
     #undef MP_DEV_UART
     #define MP_DEV_UART(device, driver, peripheral)                    \
@@ -190,9 +196,9 @@ static inline int mp_uart_write(mp_device_id_t devid,  void const * buf, size_t 
     return ret;
 }
 
-static inline int mp_uart_read(mp_device_id_t devid, void *buf, size_t nbyte)
+static inline ssize_t mp_uart_read(mp_device_id_t devid, void *buf, size_t nbyte)
 {
-    int ret = -1;
+    ssize_t ret = -1;
     
     #undef MP_DEV_UART
     #define MP_DEV_UART(device, driver, peripheral)                    \
@@ -241,7 +247,7 @@ static inline int mp_uart_printf(mp_device_id_t devid, char const * format, ...)
 {
     int ret = -1;
     va_list ap;
-    char tmpStr[32];
+    char tmpStr[128];
     
     va_start(ap, format);
     int n = vsnprintf(tmpStr, sizeof(tmpStr), format, ap);

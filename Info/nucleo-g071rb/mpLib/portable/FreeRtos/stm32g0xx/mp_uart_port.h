@@ -46,8 +46,12 @@ typedef struct
 {
     mp_uart_t uart_parent;
     USART_TypeDef * const uartx;
+    
     mp_fifo_t * fifoRx;
     mp_fifo_t * fifoTx;
+    
+    unsigned int timeoutTx;
+    unsigned int timeoutRx;
 }mp_uart_port_t;
 
 // Extern protected global variables -------------------------------------------
@@ -66,11 +70,10 @@ int mp_uart_port_deinit(mp_device_id_t devid);
 int mp_uart_port_config(mp_device_id_t devid,
                         mp_uart_baudrate_t baudrate, mp_uart_databits_t databit,
                         mp_uart_parity_t parity, mp_uart_stopbit_t stopbit);
-int mp_uart_port_write(mp_device_id_t devid, void const * buf, size_t nbyte);
-int mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte);
+ssize_t mp_uart_port_write(mp_device_id_t devid, void const * buf, size_t nbyte);
+ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte);
 int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap);
 
-//int mp_uart_port_flush(mp_device_id_t devid); ...
 
 // Static inline ISR -----------------------------------------------------------
 __attribute__((always_inline))

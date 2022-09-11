@@ -106,7 +106,9 @@ int mp_uart_port_init(mp_device_id_t devid)
 {
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
-    uint32_t transferDirection;
+    
+    dev->timeoutTx = MP_UART_TIMEOUT_MAX;
+    dev->timeoutRx = 0;
     
     // USART1
     // =================================
@@ -116,7 +118,7 @@ int mp_uart_port_init(mp_device_id_t devid)
     #endif
     if (uartx == USART1)
     {
-        transferDirection = LL_LPUART_DIRECTION_NONE;
+        uint32_t transferDirection = LL_LPUART_DIRECTION_NONE;
         
         #ifdef MP_USART1_RX_GPIO_Port
             transferDirection |= LL_LPUART_DIRECTION_RX;
@@ -194,7 +196,7 @@ int mp_uart_port_init(mp_device_id_t devid)
     #endif
     if (uartx == USART2)
     {
-        transferDirection = LL_LPUART_DIRECTION_NONE;
+        uint32_t transferDirection = LL_LPUART_DIRECTION_NONE;
         
         #ifdef MP_USART2_RX_GPIO_Port
             transferDirection |= LL_LPUART_DIRECTION_RX;
@@ -349,18 +351,18 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     //// Check databit compatibility
     //mp_assert(  (databit == MP_UART_DATA_7BITS) ||
                 //(databit == MP_UART_DATA_8BITS) ||
-                //(databit == MP_UART_DATA_9BITS) )
+                //(databit == MP_UART_DATA_9BITS), "Length data bits is not sported")
     
     //// Check stopbit compatibility
     //mp_assert(  (stopbit == MP_UART_STOPBIT_0_5) ||
                 //(stopbit == MP_UART_STOPBIT_1)   ||
                 //(stopbit == MP_UART_STOPBIT_1_5) ||
-                //(stopbit == MP_UART_STOPBIT_2) )
+                //(stopbit == MP_UART_STOPBIT_2), "Stop Bit not sported")
     
     //// Check stopbit compatibility
     //mp_assert(  (databit != MP_UART_DATA_9BITS) ||
                 //(databit == MP_UART_DATA_9BITS) &&
-                //(parity == MP_UART_PARITY_NO) )
+                //(parity == MP_UART_PARITY_NO), "Stop Bit not sported")
     
     
     
@@ -373,7 +375,7 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     {
         case MP_UART_DATA_7BITS: DataWidth = LL_USART_DATAWIDTH_7B; break;
         case MP_UART_DATA_8BITS: DataWidth = LL_USART_DATAWIDTH_8B; break;
-        case MP_UART_DATA_9BITS: DataWidth = LL_USART_DATAWIDTH_9B; break;
+        //case MP_UART_DATA_9BITS: DataWidth = LL_USART_DATAWIDTH_9B; break;
         default: return -1;
     }
     
@@ -439,14 +441,10 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     return 0;
 }
 
-int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
+static inline size_t _mp_uart_port_write(mp_uart_port_t * dev, const void * buf, size_t nbyte)
 {
-    if (nbyte == 0)
-        return 0;
-        
-    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
-    int n = 0;
+    size_t n = 0;
     
     // USART in FiFo mode ?
     if (LL_USART_IsEnabledFIFO(uartx)) // Yes
@@ -455,11 +453,14 @@ int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
         LL_USART_DisableIT_TXFE(uartx);
         
         // If the FiFo is empty we can priming the transfer.
-        bool startTx = mp_fifo_isEmpty(dev->fifoTx);
-            
-        n = mp_fifo_push(dev->fifoTx, buf, nbyte);
+        bool txPriming = mp_fifo_isEmpty(dev->fifoTx);
         
-        if (startTx && LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
+        if (nbyte == 1)
+            n = mp_fifo_pushByte(dev->fifoTx, *(uint8_t*)buf);
+        else
+            n = mp_fifo_push(dev->fifoTx, buf, nbyte);
+        
+        if (txPriming && LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
         {
             // While USART FiFo is not full we can fill TDR.
             do
@@ -470,7 +471,6 @@ int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
             }
             while(  LL_USART_IsActiveFlag_TXE_TXFNF(uartx) &&
                     !mp_fifo_isEmpty(dev->fifoTx));
-                
         }
         
         if (!mp_fifo_isEmpty(dev->fifoTx))
@@ -484,7 +484,10 @@ int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
         // If the FiFo is empty we can priming the transfer.
         bool txPriming = mp_fifo_isEmpty(dev->fifoTx);
         
-        n = mp_fifo_push(dev->fifoTx, buf, nbyte);
+        if (nbyte == 1)
+            n = mp_fifo_pushByte(dev->fifoTx, *(uint8_t*)buf);
+        else
+            n = mp_fifo_push(dev->fifoTx, buf, nbyte);
         
         if (txPriming && LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
         {
@@ -500,7 +503,40 @@ int mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
     return n;
 }
 
-int mp_uart_port_read(mp_device_id_t devid, void *buf, size_t nbyte)
+ssize_t mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte)
+{
+    if (nbyte == 0)
+        return 0;
+        
+    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
+    size_t n = 0;
+    
+    while (1)
+    {
+        n += _mp_uart_port_write(dev, buf + n, nbyte - n);
+        if (n >= nbyte)
+            return n;
+        
+        #ifdef MP_USE_FREERTOS
+        //if(xSemaphoreTake(dev->semTxEnd, dev->txTimeout) == pdTRUE)
+        //{
+            
+        //}
+        #else
+        if (dev->timeoutTx == MP_UART_TIMEOUT_MAX)
+        {
+            while (mp_fifo_isFull(dev->fifoTx)) 
+                __WFI();
+        }
+        else
+            return n;
+        #endif
+    }
+        
+    return -1;
+}
+
+ssize_t mp_uart_port_read(mp_device_id_t devid, void *buf, size_t nbyte)
 {
     (void)devid;
     (void)buf;
@@ -511,9 +547,17 @@ int mp_uart_port_read(mp_device_id_t devid, void *buf, size_t nbyte)
 
 int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap)
 {
-    (void)devid;
-    (void)request;
-    (void)ap;
+    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
+    int ret = 0;
+    switch(request)
+    {
+        case MP_UART_CTL_TX_TIMEOUT: dev->timeoutTx = va_arg(ap, unsigned int); break;
+        case MP_UART_CTL_RX_TIMEOUT: dev->timeoutRx = va_arg(ap, unsigned int); break;
+        
+        // Todo: mp_assert() ou mp_err plustot que de retrouner -1
+        default: ret = -1; break;
+        //default: mp_err("The request=%u to control uart is not sported", request); break;
+    }
     
-    return 0;
+    return ret;
 }

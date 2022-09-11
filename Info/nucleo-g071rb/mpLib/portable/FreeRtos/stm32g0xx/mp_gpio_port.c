@@ -26,6 +26,9 @@
 #include "mp/drivers/gpio.h"
 
 // Protected global variables --------------------------------------------------
+/** 
+ * @brief Table of Interrupt Service Routine of external interruption.
+ */
 void (*_mp_gpio_port_extix_isr[16])(mp_gpio_trigger_t) = {NULL};
 
 // Implemented functions -------------------------------------------------------
