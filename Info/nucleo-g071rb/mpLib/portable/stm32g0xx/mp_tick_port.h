@@ -22,22 +22,18 @@
  * SOFTWARE.
  */
 
-#ifndef MP_FREERTOS_STM32G0XX_SPI_H
-#define MP_FREERTOS_STM32G0XX_SPI_H
+#ifndef MP_TICK_PORT_H
+#define MP_TICK_PORT_H
 
-// Include ---------------------------------------------------------------------
-#include "stm32g0xx.h"
-// Don't include "mp/drivers/spi.h" here. It is "mp/drivers/spi.h" which
-// include "mp_port_spi.h" after to have declare enum, strucur, typdef, ...
+#if defined MP_PORT_FREERTOS
+    // Include header file, to manager tick from FreeRtos.
+    #include "mp_tick_port_freertos.h"
+#elif defined MP_TICK_FROM_TIMER
+    // Include header file, to manager tick from a generic timer.
+    #include "mp_tick_port_timer.h"
+#else
+    // Include header file, to manager tick from a systick timer.
+    #include "mp_tick_port_systick.h"
+#endif
 
-// Structure -------------------------------------------------------------------
-typedef struct
-{
-    SPI_TypeDef *dev;
-    int testSpiPort;
-}mp_port_spi_t;
-
-// Prototype functions ---------------------------------------------------------
-int mp_port_spi_init(mp_port_spi_t *drv, SPI_TypeDef *dev);
-
-#endif // MP_FREERTOS_STM32G0XX_SPI_H
+#endif // MP_TICK_PORT_H

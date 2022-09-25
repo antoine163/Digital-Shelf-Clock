@@ -22,22 +22,28 @@
  * SOFTWARE.
  */
 
-#ifndef MP_FREERTOS_STM32G0XX_ADC_H
-#define MP_FREERTOS_STM32G0XX_ADC_H
-
 // Include ---------------------------------------------------------------------
-#include "stm32g0xx.h"
-// Don't include "mp/drivers/adc.h" here. It is "mp/drivers/adc.h" which
-// include "mp_port_adc.h" after to have declare enum, strucur, typdef, ...
+#include "mp/drivers/tick.h"
 
-// Structure -------------------------------------------------------------------
-typedef struct
+
+#include "mp/drivers/gpio.h"
+
+// Global variables ------------------------------------------------------------
+volatile mp_tick_t _mp_tick_port_counter = 0;
+
+// Implemented functions -------------------------------------------------------
+void mp_tick_port_delay(mp_tick_t delay)
 {
-    ADC_TypeDef* dev;
-    int testAdcPort;
-}mp_port_adc_t;
+    mp_tick_t tickStart = _mp_tick_port_counter;
+    
+    while ( (_mp_tick_port_counter - tickStart) < delay )
+    {
+        __WFI();
+    }
+}
 
-// Prototype functions ---------------------------------------------------------
-int mp_port_adc_init(mp_port_adc_t *drv,  ADC_TypeDef *dev);
-
-#endif // MP_FREERTOS_STM32G0XX_ADC_H
+// ISR -------------------------------------------------------------------------
+void SysTick_Handler()
+{
+    _mp_tick_port_counter++;
+}

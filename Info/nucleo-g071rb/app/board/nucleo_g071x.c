@@ -53,7 +53,7 @@ void boardInit()
   
     // Init clock
     _systemClock_Config();
-    LL_Init1msTick(SystemCoreClock);
+    //LL_Init1msTick(SystemCoreClock);
     
     //// Enable clock for all gpio
     //LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_ALL);

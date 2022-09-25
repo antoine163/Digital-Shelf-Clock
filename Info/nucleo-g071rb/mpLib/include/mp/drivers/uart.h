@@ -32,7 +32,7 @@
 
 #include "mp_drivers.h"
 #include "mp_devices.h"
-//#include "mp_port_enum.h"
+#include "mp/drivers/tick.h"
 
 // Enum ------------------------------------------------------------------------
 typedef enum
@@ -86,12 +86,12 @@ typedef enum
 }mp_uart_stopbit_t;
 
 // Define ----------------------------------------------------------------------
-#define MP_UART_CTL_TX_TIMEOUT  0
-#define MP_UART_CTL_RX_TIMEOUT  1
+//#define MP_UART_CTL_TX_TIMEOUT  0
+//#define MP_UART_CTL_RX_TIMEOUT  1
 //#define MP_UART_CTL_RX_MODE_BYTE   2
 //#define MP_UART_CTL_RX_MODE_FRAME  3
 
-#define MP_UART_TIMEOUT_MAX  (unsigned int)(-1)
+//#define MP_UART_CTL_TX_WAIT_EMPTY  4
 
 // Structure -------------------------------------------------------------------
 typedef struct
@@ -176,7 +176,7 @@ static inline int mp_uart_config(mp_device_id_t devid,
     return ret;
 }
 
-static inline ssize_t mp_uart_write(mp_device_id_t devid,  void const * buf, size_t nbyte)
+static inline ssize_t mp_uart_write(mp_device_id_t devid,  void const * buf, size_t nbyte, mp_tick_t timeout)
 {
     ssize_t ret = -1;
     
@@ -184,7 +184,7 @@ static inline ssize_t mp_uart_write(mp_device_id_t devid,  void const * buf, siz
     #define MP_DEV_UART(device, driver, peripheral)                    \
         else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_UART_##driver)\
         {                                                              \
-            ret = mp_uart_##driver##_write(devid, buf, nbyte);         \
+            ret = mp_uart_##driver##_write(devid, buf, nbyte, timeout);\
         }
     
     if(0){}
@@ -196,7 +196,7 @@ static inline ssize_t mp_uart_write(mp_device_id_t devid,  void const * buf, siz
     return ret;
 }
 
-static inline ssize_t mp_uart_read(mp_device_id_t devid, void *buf, size_t nbyte)
+static inline ssize_t mp_uart_read(mp_device_id_t devid, void *buf, size_t nbyte, mp_tick_t timeout)
 {
     ssize_t ret = -1;
     
@@ -204,7 +204,7 @@ static inline ssize_t mp_uart_read(mp_device_id_t devid, void *buf, size_t nbyte
     #define MP_DEV_UART(device, driver, peripheral)                    \
         else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_UART_##driver)\
         {                                                              \
-            ret = mp_uart_##driver##_read(devid, buf, nbyte);          \
+            ret = mp_uart_##driver##_read(devid, buf, nbyte, timeout); \
         }
     
     if(0){}
@@ -239,6 +239,21 @@ static inline int mp_uart_ctl(mp_device_id_t devid, int request, ...)
     return ret;
 }
 
+//static inline int mp_uart_waitEndTransmission(mp_device_id_t devid, unsigned int timeout)
+//{
+    //return -1;
+//}
+
+//static inline int mp_uart_waitDataReception(mp_device_id_t devid, unsigned int timeout)
+//{
+    //return -1;
+//}
+
+//static inline int mp_uart_waitFrameReception(mp_device_id_t devid, unsigned int timeout)
+//{
+    //return -1;
+//}
+
 // Note: fonction pour fair des printf rapide. si plusiteur uarte son definie
 // dans la table des device il peut étre préférable de re emplementer cette fonction.
 // Todo: Completer/améliorer le comentére si dessus
@@ -252,7 +267,7 @@ static inline int mp_uart_printf(mp_device_id_t devid, char const * format, ...)
     va_start(ap, format);
     int n = vsnprintf(tmpStr, sizeof(tmpStr), format, ap);
     va_end(ap);
-    ret = mp_uart_write(devid, tmpStr, n);
+    ret = mp_uart_write(devid, tmpStr, n, MP_TICK_MAX);
     
     return ret;
 }

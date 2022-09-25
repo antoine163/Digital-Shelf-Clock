@@ -312,8 +312,8 @@ static inline int mp_gpio_toggle(mp_device_id_t devid, unsigned int pinmask)
     return ret;
 }
 
-// Note: mp_gpio_deinit() ne desctive pas les IT dégà activer. Il faut au 
-// prealable les desactiver avec mp_gpio_disableIt() evant d'apeler
+// Note: mp_gpio_deinit() ne désactive pas les IT déjà activer. Il faut au 
+// préalable les désactivé avec mp_gpio_disableIt() avent d'appeler
 // mp_gpio_deinit()
 static inline int mp_gpio_enableIsr(mp_device_id_t devid, unsigned int pinmask,
                                     mp_gpio_trigger_t trigger,

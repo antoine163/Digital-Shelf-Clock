@@ -38,6 +38,11 @@
 #define AFF_7SEG            MP_GPIO_PIN(dev_gpioc, 0, 1, 2, 3, 4, 5, 6, 10)
 
 
+// Tick
+#define MP_TICK_CLOCK_HZ            ( SystemCoreClock )
+#define MP_TICK_RATE_HZ             ( 1000 )
+
+
 // Pins of USART1 ( dev_ws2812b )
 #define MP_USART1_TX_GPIO_Port      GPIOA
 #define MP_USART1_TX_Pin            LL_GPIO_PIN_9
@@ -46,7 +51,7 @@
 #define MP_USART1_TX_PULL           LL_GPIO_PULL_UP
 #define MP_USART1_TX_OUTPUT         LL_GPIO_OUTPUT_PUSHPULL
 #define MP_USART1_TX_PIN_LEVEL      LL_USART_TXPIN_LEVEL_STANDARD
-#define MP_USART1_TX_FIFO_SIZE      (1024*2)
+#define MP_USART1_TX_FIFO_SIZE      ( 1024*2 ) // Si 0 ou pas définie la fonction write n'a plus d'effet
 
 #define MP_USART1_CLKSOURCE         LL_RCC_USART1_CLKSOURCE_PCLK1
 #define MP_USART1_TXRX_SWAPPED      LL_USART_TXRX_STANDARD
@@ -79,10 +84,10 @@
 #define MP_INTERRUPT_TABLE                                             \
     /*          vector,   priority, irq                              */\
     MP_INT_ISR( USART1,   1,        mp_uart_port_usart1_isr())         \
-    MP_INT_ISR( USART2,   3,        mp_uart_port_usart2_isr())         \
-    MP_INT_ISR( EXTI0_1,  3,        mp_gpio_port_exti0_1_isr())        \
-    MP_INT_ISR( EXTI2_3,  3,        mp_gpio_port_exti2_3_isr())        \
-    MP_INT_ISR( EXTI4_15, 3,        mp_gpio_port_exti4_15_isr())
+    MP_INT_ISR( USART2,   2,        mp_uart_port_usart2_isr())         \
+    MP_INT_ISR( EXTI0_1,  2,        mp_gpio_port_exti0_1_isr())        \
+    MP_INT_ISR( EXTI2_3,  2,        mp_gpio_port_exti2_3_isr())        \
+    MP_INT_ISR( EXTI4_15, 2,        mp_gpio_port_exti4_15_isr())
     
 
 #endif // MP_HARD_MAP_H

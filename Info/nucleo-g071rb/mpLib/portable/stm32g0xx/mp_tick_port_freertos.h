@@ -22,13 +22,48 @@
  * SOFTWARE.
  */
 
+#ifndef MP_TICK_PORT_FREERTOS_H
+#define MP_TICK_PORT_FREERTOS_H
+
+// For Freertos add
+// #define xPortSysTickHandler         mp_uart_port_systick_isr
+// In FreeRTOSConfig.h file
+
 // Include ---------------------------------------------------------------------
-#include "mp/drivers/gpio.h"
+#include <task.h>
 
-// Protected global variables --------------------------------------------------
-/** 
- * @brief Table of Interrupt Service Routine of external interruption.
- */
-void (*_mp_gpio_port_extix_isr[16])(mp_gpio_trigger_t) = {NULL};
+// Define macro ----------------------------------------------------------------
 
-// Implemented functions -------------------------------------------------------
+// Typedef ---------------------------------------------------------------------
+typedef TickType_t mp_tick_t;
+
+// Structure -------------------------------------------------------------------
+
+// Extern protected global variables -------------------------------------------
+
+// Prototype functions ---------------------------------------------------------
+
+// Static inline functions -----------------------------------------------------
+static inline int mp_tick_port_init()
+{
+    return 0;
+}
+
+static inline mp_tick_t mp_tick_port_get()
+{
+    return xTaskGetTickCount();
+}
+
+static inline mp_tick_t mp_tick_port_getFromIsr()
+{
+    return xTaskGetTickCountFromISR();
+}
+
+static inline void mp_tick_port_delay(mp_tick_t delay)
+{
+    vTaskDelay(delay);
+}
+
+
+
+#endif // MP_TICK_PORT_FREERTOS_H

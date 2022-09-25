@@ -101,6 +101,8 @@ void task_test( void* pvParameters )
 {
     (void)pvParameters;  
     
+    mp_interrupt_init();
+    mp_tick_init();
     
     // Init gpios
     mp_gpio_init(dev_gpioa);
@@ -121,9 +123,6 @@ void task_test( void* pvParameters )
     MP_GPIO_IN( BP2,                        UP);
     MP_GPIO_IN( PIN_BP_LED,                 UP);
 
-    
-    mp_interrupt_init();
-    
     // grep "<mp[^ ]*>:" digital_shelf_clock.lss
     // rm-none-eabi-readelf digital_shelf_clock.elf -wi > /tmp/readelf
     mp_gpio_enableIsr(BP1, MP_GPIO_TRIGGER_FALLING, bp1Handler);
@@ -134,17 +133,17 @@ void task_test( void* pvParameters )
     
     mp_uart_init(dev_ws2812b);
     mp_uart_config(dev_ws2812b, 2500000, 7, 0, 1);
-    mp_uart_ctl(dev_ws2812b, MP_UART_CTL_TX_TIMEOUT, MP_UART_TIMEOUT_MAX);
+    //mp_uart_ctl(dev_ws2812b, MP_UART_CTL_TX_TIMEOUT, MP_TICK_MAX);
     //mp_uart_config(dev_ws2812b, 8000000, 8, 0, 1); // Todo: verifier si le 8MHz est possible avec la clock de 'uart ...
     //mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
     //ws2812b_reset();
-    LL_mDelay(1);
+    mp_tick_delay(MP_TICK_FROM_MS(1));
     ws2812b_update();
     
     mp_uart_init(dev_tty);
     mp_uart_config(dev_tty, 115200, 8, 0, 1);
-    mp_uart_ctl(dev_tty, MP_UART_CTL_TX_TIMEOUT, MP_UART_TIMEOUT_MAX);
-    mp_uart_ctl(dev_tty, MP_UART_CTL_RX_TIMEOUT, 100);
+    //mp_uart_ctl(dev_tty, MP_UART_CTL_TX_TIMEOUT, MP_TICK_MAX);
+    //mp_uart_ctl(dev_tty, MP_UART_CTL_RX_TIMEOUT, 100);
     mp_uart_printf(dev_tty, "nucleo-g071rb inisilised !\r\n");
     
 #if 1
@@ -187,7 +186,7 @@ void task_test( void* pvParameters )
         //mp_gpio_up(PIN_LED_GREEN);
         ws2812b_update();
         //mp_gpio_down(PIN_LED_GREEN);
-        LL_mDelay(6);
+        mp_tick_delayMs(10);
         
         
         //if (ws2812b_update_led)
@@ -318,7 +317,9 @@ void ws2812b_update()
         if(bufColorLedsIndex >= sizeof(bufColorLeds))
         {
             mp_gpio_up(PIN_LED_GREEN);
-            mp_uart_write(dev_ws2812b, &bufColorLeds, bufColorLedsIndex);
+            mp_uart_write(dev_ws2812b, &bufColorLeds, bufColorLedsIndex, MP_TICK_MAX);
+            //mp_uart_waitEndTransmit(dev_ws2812b, MP_TICK_MAX);
+            
             mp_gpio_down(PIN_LED_GREEN);
             
             bufColorLedsIndex = 0;
@@ -328,7 +329,7 @@ void ws2812b_update()
     if(bufColorLedsIndex > 0)
     {
         mp_gpio_up(PIN_LED_GREEN);
-        mp_uart_write(dev_ws2812b, &bufColorLeds, bufColorLedsIndex);
+        mp_uart_write(dev_ws2812b, &bufColorLeds, bufColorLedsIndex, MP_TICK_MAX);
         mp_gpio_down(PIN_LED_GREEN);
     }
 }

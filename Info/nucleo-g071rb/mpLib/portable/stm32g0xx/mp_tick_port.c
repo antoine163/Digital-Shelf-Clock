@@ -22,13 +22,13 @@
  * SOFTWARE.
  */
 
-// Include ---------------------------------------------------------------------
-#include "mp/drivers/spi.h"
-#include <stm32g0xx_ll_spi.h>
+#if defined MP_PORT_FREERTOS
+    // No need to include source file for FreeRtos tick management.
+#elif defined MP_TICK_FROM_TIMER
+    // Include source file, to manager tick from a generic timer.
+    #include "mp_tick_port_timer.c"
+#else // MP_TICK_FROM_SYSTICK
+    // Include source file, to manager tick from a systick timer.
+    #include "mp_tick_port_systick.c"
+#endif
 
-// Implemented functions -------------------------------------------------------
-int mp_port_spi_init(mp_port_spi_t *drv,  SPI_TypeDef *dev)
-{
-    drv->dev = dev;
-    return -1;
-}

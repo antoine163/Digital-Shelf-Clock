@@ -22,25 +22,47 @@
  * SOFTWARE.
  */
 
-#ifndef MP_INTERRUPT_PORT_H
-#define MP_INTERRUPT_PORT_H
+#ifndef MP_TICK_PORT_BAREMETAL_H
+#define MP_TICK_PORT_BAREMETAL_H
 
 // Include ---------------------------------------------------------------------
-#include "stm32g0xx.h"
-// Don't include "mp/drivers/interrupt.h" here. It is "mp/drivers/interrupt.h" which
-// include "mp_interrupt_port.h" after to have declare enum, strucur, typdef, ...
+#include "mpHardMap.h"
 
+// St Low level
+#include <stm32g0xx_ll_utils.h>
 
-// Define macro ----------------------------------------------------------------
+// Typedef ---------------------------------------------------------------------
+typedef uint32_t mp_tick_t;
 
-// Structure -------------------------------------------------------------------
-
-// Extern protected global variables -------------------------------------------
+// Global variables ------------------------------------------------------------
+extern volatile mp_tick_t _mp_tick_port_counter;
 
 // Prototype functions ---------------------------------------------------------
-int mp_interrupt_port_init();
+void mp_tick_port_delay(mp_tick_t delay);
 
 // Static inline functions -----------------------------------------------------
+static inline int mp_tick_port_init()
+{
+    SysTick_Config( MP_TICK_CLOCK_HZ / MP_TICK_RATE_HZ );
+    return 0;
+}
+
+static inline int mp_tick_port_deinit()
+{
+    SysTick->CTRL = 0;
+    return 0;
+}
+
+static inline mp_tick_t mp_tick_port_get()
+{
+    return _mp_tick_port_counter;
+}
+
+static inline mp_tick_t mp_tick_port_getFromIsr()
+{
+    return _mp_tick_port_counter;
+}
 
 
-#endif // MP_INTERRUPT_PORT_H
+
+#endif // MP_TICK_PORT_BAREMETAL_H
