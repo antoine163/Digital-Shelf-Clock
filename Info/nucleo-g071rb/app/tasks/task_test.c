@@ -95,7 +95,7 @@ unsigned char digit[] = {0xc0,   //0
 void ws2812b_update();
 int ws2812b_update_led = 0;
 volatile uint8_t brightness_led = 10;
-volatile int32_t write_led_index = 10;
+volatile int32_t write_led_index = 0;
 volatile uint32_t write_led_cmpUp = 1;
 void task_test( void* pvParameters )
 {
@@ -124,7 +124,7 @@ void task_test( void* pvParameters )
     MP_GPIO_IN( PIN_BP_LED,                 UP);
 
     // grep "<mp[^ ]*>:" digital_shelf_clock.lss
-    // rm-none-eabi-readelf digital_shelf_clock.elf -wi > /tmp/readelf
+    // arm-none-eabi-readelf digital_shelf_clock.elf -wi > /tmp/readelf
     mp_gpio_enableIsr(BP1, MP_GPIO_TRIGGER_FALLING, bp1Handler);
     mp_gpio_enableIsr(BP2, MP_GPIO_TRIGGER_FALLING, bp2Handler);
     mp_gpio_enableIsr(PIN_BP_LED, MP_GPIO_TRIGGER_RISING, bpLedHandler);
@@ -148,7 +148,7 @@ void task_test( void* pvParameters )
     
 #if 1
     int cpt = 0;
-    while(1)
+    while (1)
     {
         //vTaskDelay(450 / portTICK_PERIOD_MS);
         //LL_mDelay(450);
@@ -186,7 +186,7 @@ void task_test( void* pvParameters )
         //mp_gpio_up(PIN_LED_GREEN);
         ws2812b_update();
         //mp_gpio_down(PIN_LED_GREEN);
-        mp_tick_delayMs(10);
+        mp_tick_delayMs(15);
         
         
         //if (ws2812b_update_led)
@@ -243,24 +243,28 @@ void ws2812b_update()
     #define CODE3_1  /* (1) MSB / Stop bit */ 0b0011111 /* (0) LSB / Start bit */
     
     
-    #define NB_LED  (3 * 85) // 255
+    #define NB_LED  (3 * 100) // 255
     //#define NB_LED  (3 * 1) // 255
     
     //Todo: atendre 50us apre le dernier carecter ecrite de la fifo uart
     uint32_t colorLeds[NB_LED];
     
-    for(int i=0; i<NB_LED;)
+    for (int i=0; i<NB_LED;)
     {
         colorLeds[i++] = brightness_led << 16; //GRB
         colorLeds[i++] = brightness_led << 8;
         colorLeds[i++] = brightness_led << 0;
+        //colorLeds[i++] = 0xffffff; //GRB
+        //colorLeds[i++] = 0xffffff;
+        //colorLeds[i++] = 0xffffff;
     }
     
     
     colorLeds[write_led_index] = 0x00ffffff;
+    //colorLeds[write_led_index] = 0;
     
     
-    if(write_led_cmpUp)
+    if (write_led_cmpUp)
     {
         write_led_index+=1;
         if(write_led_index >= NB_LED)
