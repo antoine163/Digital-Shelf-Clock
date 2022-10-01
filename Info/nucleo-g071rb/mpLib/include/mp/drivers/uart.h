@@ -216,6 +216,26 @@ static inline ssize_t mp_uart_read(mp_device_id_t devid, void *buf, size_t nbyte
     return ret;
 }
 
+static inline int mp_uart_waitEndTransmit(mp_device_id_t devid, mp_tick_t timeout)
+{
+    ssize_t ret = -1;
+    
+    #undef MP_DEV_UART
+    #define MP_DEV_UART(device, driver, peripheral)                    \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_UART_##driver)\
+        {                                                              \
+            ret = mp_uart_##driver##_waitEndTransmit(devid, timeout);  \
+        }
+    
+    if(0){}
+    MP_DEVICES_TABLE
+    
+    #undef MP_DEV_UART
+    #define MP_DEV_UART(device, driver, peripheral)
+    
+    return ret;
+}
+
 static inline int mp_uart_ctl(mp_device_id_t devid, int request, ...)
 {
     int ret = -1;

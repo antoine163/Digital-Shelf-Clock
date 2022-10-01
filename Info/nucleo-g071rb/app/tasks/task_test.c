@@ -137,8 +137,8 @@ void task_test( void* pvParameters )
     //mp_uart_config(dev_ws2812b, 8000000, 8, 0, 1); // Todo: verifier si le 8MHz est possible avec la clock de 'uart ...
     //mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
     //ws2812b_reset();
-    mp_tick_delay(MP_TICK_FROM_MS(1));
-    ws2812b_update();
+    //mp_tick_delay(MP_TICK_FROM_MS(1));
+    //ws2812b_update();
     
     mp_uart_init(dev_tty);
     mp_uart_config(dev_tty, 115200, 8, 0, 1);
@@ -184,9 +184,11 @@ void task_test( void* pvParameters )
             //__NOP();
         //}
         //mp_gpio_up(PIN_LED_GREEN);
+        mp_uart_waitEndTransmit(dev_ws2812b, MP_TICK_MAX);
+        mp_tick_delay(1);
         ws2812b_update();
         //mp_gpio_down(PIN_LED_GREEN);
-        mp_tick_delayMs(15);
+        //mp_tick_delayMs(15);
         
         
         //if (ws2812b_update_led)
