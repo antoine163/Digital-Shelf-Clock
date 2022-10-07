@@ -100,7 +100,7 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
     USART_TypeDef * uartx = dev->uartx;
     
     // -- Manage transmit data --
-
+    
     // The USART Tx FiFo is empty ?
     if (    LL_USART_IsEnabledIT_TXFE(uartx)    &&
             LL_USART_IsActiveFlag_TXFE(uartx))
@@ -158,9 +158,20 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
     if (    LL_USART_IsEnabledIT_RXNE_RXFNE(uartx) &&
             LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
     {
-        // This interruption is enable only to wakeup the CPU for the
-        // mp_uart_port_read() function. So, disable only it.
+        // This interruption is enable to wakeup the CPU for the
+        // mp_uart_port_read() function.
+        
+        // We need to read a byte and push to the Rx FiFo for the Rx FiFo is no
+        // empty and unblock mp_uart_port_read() function.
+        uint8_t byte = LL_USART_ReceiveData8(uartx);
+        MP_FIFO_PUSH_BYTE(dev->fifoRx, byte);
+        
+        // Disable 'RX Not Empty' Interrupt used for wakeup.
         LL_USART_DisableIT_RXNE_RXFNE(uartx);
+        
+        // Disable RX FIFO Full Interrupt if the data Rx FiFo is full.
+        if (mp_fifo_isFull(dev->fifoRx))
+            LL_USART_DisableIT_RXFF(uartx);
         
 #if defined MP_PORT_FREERTOS
 #endif
@@ -171,7 +182,9 @@ __attribute__((always_inline))
 static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
 {
     USART_TypeDef * uartx = dev->uartx;
-
+    
+    // -- Manage transmit data --
+    
     // The USART Transmit Data Register is empty ?
     if (    LL_USART_IsEnabledIT_TXE_TXFNF(uartx)   &&
             LL_USART_IsActiveFlag_TXE_TXFNF(uartx))
@@ -196,6 +209,20 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
 
 #if defined MP_PORT_FREERTOS
 #endif
+    }
+    
+    // -- Manage receive data --
+    
+    // The USART Rx is not empty ? 
+    if (    LL_USART_IsEnabledIT_RXNE_RXFNE(uartx)    &&
+            LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
+    {
+        uint8_t byte = LL_USART_ReceiveData8(uartx);
+        MP_FIFO_PUSH_BYTE(dev->fifoRx, byte);
+        
+        // Disable 'RX Not Empty' Interrupt if the data Rx FiFo is full.
+        if (mp_fifo_isFull(dev->fifoRx))
+            LL_USART_DisableIT_RXNE_RXFNE(uartx);
     }
 }
 

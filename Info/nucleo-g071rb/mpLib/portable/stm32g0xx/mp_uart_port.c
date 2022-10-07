@@ -550,7 +550,7 @@ ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte, mp_tic
         LL_USART_EnableIT_RXNE_RXFNE(uartx);
     
         // Wait available byte or timeout.
-        while(!LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
+        while(mp_fifo_isEmpty(dev->fifoRx))
         {
             if (mp_tick_get() - tickStart >= timeout)
                 return 0;
@@ -558,15 +558,33 @@ ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte, mp_tic
             __WFI();
         }
     }
-#endif 
+#endif
 
-    // Disable RX FIFO Full Interrupt
-    LL_USART_DisableIT_RXFF(uartx);
+    // Mask of CR1 to disable and enable interruption to pop data in the
+    // Rx FiFo safely. The interruption used depend the uart mode, in Fifo mode
+    // or not. 
+    uint32_t cr1ItMask = 0;
+    if (LL_USART_IsEnabledFIFO(uartx))
+    {
+        // In USART FiFo mode the 'RX FIFO Full Interrupt' flag is used to
+        // manage the reception and limit the number of interruption.
+        // See: mp_uart_port_usartx_fifo_isr().
+        cr1ItMask = USART_CR1_RXFFIE;
+    }
+    else
+    {
+        // In USART standard mode the 'RX Not Empty' flag is used to manage the
+        // reception. See mp_uart_port_usartx_isr().
+        cr1ItMask = USART_CR1_RXNEIE_RXFNEIE;
+    }
+
+    // Disable 'RX FIFO Full Interrupt' or 'RX Not Empty'
+    ATOMIC_CLEAR_BIT(uartx->CR1, cr1ItMask); 
     
     // Tack bytes from Rx FiFo
     n += mp_fifo_pop(dev->fifoRx, buf+n, nbyte-n);
     
-    // Tack additional bytes from USART Rx FiFo
+    // Tack additional bytes from USART Rx
     while(  (n < nbyte) &&
             LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
     {
@@ -575,8 +593,8 @@ ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte, mp_tic
         n += 1;
     }
     
-    // Enable RX FIFO Full Interrupt
-    LL_USART_EnableIT_RXFF(uartx);
+    // Enable 'RX FIFO Full Interrupt' or 'RX Not Empty'
+    ATOMIC_SET_BIT(uartx->CR1, cr1ItMask);
     
     return n;
 }
