@@ -267,7 +267,7 @@ cgdb:debug
 	
 # Run minicom on /dev/ttyACM0 for nucleo.
 minicom:
-	minicom -b 115200 -D /dev/ttyACM0 -c on
+	minicom -b 2000000 -D /dev/ttyACM0 -c on
 	
 # Build documentation with doxygen
 doc:

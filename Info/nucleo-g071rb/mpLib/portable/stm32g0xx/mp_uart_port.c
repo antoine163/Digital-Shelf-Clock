@@ -254,10 +254,10 @@ int mp_uart_port_init(mp_device_id_t devid)
         LL_USART_SetTXPinLevel(USART2, MP_USART2_TX_PIN_LEVEL);
         #endif
         
-        //#ifdef MP_USART2_RX_GPIO_Port
-        //// Enable RXNE and Error interrupts.
-        //LL_USART_EnableIT_RXNE_RXFNE(USART2);
-        //#endif
+        #ifdef MP_USART2_RX_GPIO_Port
+        // Enable RX FIFO Full Interrupt
+        LL_USART_EnableIT_RXFF(USART2);
+        #endif
         
         return 0;
     }
@@ -438,6 +438,9 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     return 0;
 }
 
+// Ecrit dans la fifo temp qu'il y a des donner dans le buffer (@p buf) et que le
+// timeout n'est pas ecouler.
+// Note: Le time out commense a lapelle de la fonction
 ssize_t mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte, mp_tick_t timeout)
 {
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
@@ -467,7 +470,6 @@ ssize_t mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte,
     }
     
 #if defined MP_PORT_FREERTOS
-
 #else
     // Get initial time to manager timeout
     mp_tick_t tickStart = mp_tick_get();
@@ -475,7 +477,7 @@ ssize_t mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte,
     // Write all data until complete or timeout.
     do
     {
-        // Wait available byte in a FiFo or quit if timeout.
+        // Wait free byte in a FiFo or quit if timeout.
         while (mp_fifo_isFull(dev->fifoTx))
         {
             if (mp_tick_get() - tickStart >= timeout)
@@ -486,7 +488,7 @@ ssize_t mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte,
         
         // Push data to FiFo
         ATOMIC_CLEAR_BIT(uartx->CR1, cr1ItMask); 
-        n += mp_fifo_push(dev->fifoTx, buf, nbyte);
+        n += mp_fifo_push(dev->fifoTx, buf+n, nbyte-n);
         ATOMIC_SET_BIT(uartx->CR1, cr1ItMask);
         
     }while (n < nbyte);
@@ -521,17 +523,63 @@ int mp_uart_port_waitEndTransmit(mp_device_id_t devid, mp_tick_t timeout)
 #endif 
 }
 
-ssize_t mp_uart_port_read(mp_device_id_t devid, void *buf, size_t nbyte, mp_tick_t timeout)
+// Si il n'y pas pas de donnée de disponible attem au maximume un timout.
+// Li les donner de la fifo de nbyte ou moin. si aucune donnée est displonible 
+// a laplle de la fonction atten au maximume un timeout.
+// Note: Le time out commense a lapelle de la fonction
+ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte, mp_tick_t timeout)
 {
-    (void)devid;
-    (void)buf;
-    (void)nbyte;
-    (void)timeout;
+    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
+    USART_TypeDef * uartx = dev->uartx;
+    size_t n = 0;
     
-    return 0;
-}
+    // No byte to receive ?
+    if (nbyte == 0)
+        return 0;
 
-//static inline mp_uart_port_ctlTxTimeout(
+#if defined MP_PORT_FREERTOS
+#else
+    // No byte available in Rx FiFo ?
+    if (mp_fifo_isEmpty(dev->fifoRx))
+    {
+        // Get initial time to manager timeout
+        mp_tick_t tickStart = mp_tick_get();
+    
+        // Enable RX Not Empty and RX FIFO Not Empty Interrupt to wakeup the
+        // CPU when the a byte as receive.
+        LL_USART_EnableIT_RXNE_RXFNE(uartx);
+    
+        // Wait available byte or timeout.
+        while(!LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
+        {
+            if (mp_tick_get() - tickStart >= timeout)
+                return 0;
+                
+            __WFI();
+        }
+    }
+#endif 
+
+    // Disable RX FIFO Full Interrupt
+    LL_USART_DisableIT_RXFF(uartx);
+    
+    // Tack bytes from Rx FiFo
+    n += mp_fifo_pop(dev->fifoRx, buf+n, nbyte-n);
+    
+    // Tack additional bytes from USART Rx FiFo
+    while(  (n < nbyte) &&
+            LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
+    {
+        uint8_t byte = LL_USART_ReceiveData8(uartx);
+        *((uint8_t*)buf + n) = byte;
+        n += 1;
+    }
+    
+    // Enable RX FIFO Full Interrupt
+    LL_USART_EnableIT_RXFF(uartx);
+    
+    return n;
+}
 
 int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap)
 {

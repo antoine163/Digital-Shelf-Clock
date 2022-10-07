@@ -98,6 +98,8 @@ __attribute__((always_inline))
 static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
 {
     USART_TypeDef * uartx = dev->uartx;
+    
+    // -- Manage transmit data --
 
     // The USART Tx FiFo is empty ?
     if (    LL_USART_IsEnabledIT_TXFE(uartx)    &&
@@ -126,6 +128,39 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         // This interruption is enable only to wakeup the CPU for the
         // waitEndTransmit() function. So, disable only it.
         LL_USART_DisableIT_TC(uartx);
+        
+#if defined MP_PORT_FREERTOS
+#endif
+    }
+    
+    // -- Manage receive data --
+    
+    // The USART Rx FiFo is full ?
+    if (    LL_USART_IsEnabledIT_RXFF(uartx)    &&
+            LL_USART_IsActiveFlag_RXFF(uartx))
+    {
+        do
+        {
+            uint8_t byte = LL_USART_ReceiveData8(uartx);
+            MP_FIFO_PUSH_BYTE(dev->fifoRx, byte);
+            
+            // Disable RX FIFO Full Interrupt if the data Rx FiFo is full.
+            if (mp_fifo_isFull(dev->fifoRx))
+            {
+                LL_USART_DisableIT_RXFF(uartx);
+                break;
+            }
+        }
+        while(LL_USART_IsActiveFlag_RXNE_RXFNE(uartx));
+    }
+    
+    // A byte has be received ?
+    if (    LL_USART_IsEnabledIT_RXNE_RXFNE(uartx) &&
+            LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
+    {
+        // This interruption is enable only to wakeup the CPU for the
+        // mp_uart_port_read() function. So, disable only it.
+        LL_USART_DisableIT_RXNE_RXFNE(uartx);
         
 #if defined MP_PORT_FREERTOS
 #endif

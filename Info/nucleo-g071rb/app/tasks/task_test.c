@@ -141,10 +141,36 @@ void task_test( void* pvParameters )
     //ws2812b_update();
     
     mp_uart_init(dev_tty);
-    mp_uart_config(dev_tty, 115200, 8, 0, 1);
+    //mp_uart_config(dev_tty, 115200, 8, 0, 1);
+    mp_uart_config(dev_tty, 2000000, 8, 0, 1);
     //mp_uart_ctl(dev_tty, MP_UART_CTL_TX_TIMEOUT, MP_TICK_MAX);
     //mp_uart_ctl(dev_tty, MP_UART_CTL_RX_TIMEOUT, 100);
-    mp_uart_printf(dev_tty, "nucleo-g071rb inisilised !\r\n");
+    mp_uart_printf(dev_tty, "\r\nnucleo-g071rb inisilised !\r\n");
+    
+    //mp_tick_delayMs(3000);
+    mp_uart_printf(dev_tty, "Write something:");
+    
+    while(1)
+    {
+        uint8_t buf[32];
+
+        memset(buf, 0, sizeof(buf));
+        //mp_uart_printf(dev_tty, "Write something:");
+        int n = mp_uart_read(dev_tty, buf, sizeof(buf), MP_TICK_MAX);
+        
+        //if (n ==1 && buf[0]=='\r')
+            //mp_uart_printf(dev_tty, "\r\n");
+        //else if (n == 2 )
+        //{
+            //__NOP();
+            //mp_uart_printf(dev_tty, "(%u)'%s'", n, buf);
+        //}
+        //else
+            //mp_uart_printf(dev_tty, "(%u)'%s'\r\n", n, buf);
+        mp_uart_write(dev_tty, buf, n, -1);
+        
+        //mp_tick_delayMs(100);
+    }
     
 #if 1
     int cpt = 0;

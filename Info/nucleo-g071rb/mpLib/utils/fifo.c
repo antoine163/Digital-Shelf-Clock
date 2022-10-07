@@ -108,7 +108,6 @@ size_t mp_fifo_pop(mp_fifo_t * fifo, uint8_t * buf, size_t nbyte)
         memcpy(buf, fifo->buffer, nByteFromStart);
         
         fifo->readFrom = fifo->buffer + nByteFromStart;
-        fifo->used -= nbyte;
     }
     
     fifo->used -= nbyte;
