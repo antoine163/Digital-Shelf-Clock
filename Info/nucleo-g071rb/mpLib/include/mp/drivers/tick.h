@@ -35,7 +35,7 @@
  * 
  * This value can be use for infinite timeout.
  */
-#define MP_TICK_MAX  (mp_tick_t)(-1)
+#define MP_TICK_MAX     MP_TICK_PORT_MAX
 
 /**
  * @brief Convert milliseconds to tick.
@@ -43,7 +43,7 @@
  * @param ms Value in milliseconds to convert.
  * @return The number of tick in @p ms.
  */
-#define MP_TICK_FROM_MS(ms)     ( ms * MP_TICK_RATE_HZ / 1000 )
+#define MP_TICK_FROM_MS(ms)     MP_TICK_PORT_FROM_MS(ms)
 
 /**
  * @brief Convert tick to milliseconds.
@@ -51,7 +51,7 @@
  * @param tick The value in tick to convert.
  * @return The Number of milliseconds from @p tick.
  */
-#define MP_TICK_TO_MS(tick)     ( tick * 1000 / MP_TICK_RATE_HZ )
+#define MP_TICK_TO_MS(tick)     MP_TICK_PORT_TO_MS(tick)
 
 // Public static 'virtual' functions -------------------------------------------
 static inline int mp_tick_init()

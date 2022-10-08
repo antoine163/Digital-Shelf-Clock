@@ -35,34 +35,32 @@
 
 int main()
 {
-    boardInit();
+    systemInit();
     
     
     
-    ///* Structure that will hold the TCB of the task being created. */
-    //StaticTask_t xTaskBuffer;
+    /* Structure that will hold the TCB of the task being created. */
+    StaticTask_t xTaskBuffer;
 
-    ///* Buffer that the task being created will use as its stack.  Note this is
-    //an array of StackType_t variables.  The size of StackType_t is dependent on
-    //the RTOS port. */
-    //StackType_t xStack[ configMINIMAL_STACK_SIZE ];
+    /* Buffer that the task being created will use as its stack.  Note this is
+    an array of StackType_t variables.  The size of StackType_t is dependent on
+    the RTOS port. */
+    StackType_t xStack[ configMINIMAL_STACK_SIZE ];
     
-    ///* Create the task without using any dynamic memory allocation. */
-     //xTaskCreateStatic(
-                  //task_test,       /* Function that implements the task. */
-                  //"Test",          /* Text name for the task. */
-                  //configMINIMAL_STACK_SIZE,      /* Number of indexes in the xStack array. */
-                  //( void * ) NULL,    /* Parameter passed into the task. */
-                  //tskIDLE_PRIORITY+1,/* Priority at which the task is created. */
-                  //xStack,          /* Array to use as the task's stack. */
-                  //&xTaskBuffer );  /* Variable to hold the task's data structure. */
-    
-    
+    /* Create the task without using any dynamic memory allocation. */
+     xTaskCreateStatic(
+                  task_test,       /* Function that implements the task. */
+                  "Test",          /* Text name for the task. */
+                  configMINIMAL_STACK_SIZE,      /* Number of indexes in the xStack array. */
+                  ( void * ) NULL,    /* Parameter passed into the task. */
+                  tskIDLE_PRIORITY+1,/* Priority at which the task is created. */
+                  xStack,          /* Array to use as the task's stack. */
+                  &xTaskBuffer );  /* Variable to hold the task's data structure. */
     
     
-    //vTaskStartScheduler();
     
-    task_test(NULL);
+    
+    vTaskStartScheduler();
     
     return 0;
 }

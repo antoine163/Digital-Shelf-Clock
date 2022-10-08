@@ -31,6 +31,11 @@
 // St Low level
 #include <stm32g0xx_ll_utils.h>
 
+// Define macro ----------------------------------------------------------------
+#define MP_TICK_PORT_MAX            (mp_tick_t)(-1)
+#define MP_TICK_PORT_FROM_MS(ms)    ( ms * MP_TICK_RATE_HZ / 1000 )
+#define MP_TICK_PORT_TO_MS(tick)    ( tick * 1000 / MP_TICK_RATE_HZ )
+
 // Typedef ---------------------------------------------------------------------
 typedef uint32_t mp_tick_t;
 

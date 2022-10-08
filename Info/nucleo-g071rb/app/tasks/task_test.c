@@ -145,10 +145,10 @@ void task_test( void* pvParameters )
     mp_uart_config(dev_tty, 2000000, 8, 0, 1);
     //mp_uart_ctl(dev_tty, MP_UART_CTL_TX_TIMEOUT, MP_TICK_MAX);
     //mp_uart_ctl(dev_tty, MP_UART_CTL_RX_TIMEOUT, 100);
-    mp_uart_printf(dev_tty, "\r\nnucleo-g071rb inisilised !\r");
+    //mp_uart_printf(dev_tty, "\r\nnucleo-g071rb inisilised !\r");
     
     //mp_tick_delayMs(3000);
-    mp_uart_printf(dev_tty, "Write something:");
+    //mp_uart_printf(dev_tty, "Write something:");
     
     while(1)
     {

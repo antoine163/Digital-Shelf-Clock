@@ -30,9 +30,13 @@
 // In FreeRTOSConfig.h file
 
 // Include ---------------------------------------------------------------------
-#include <task.h>
+#include "FreeRTOS.h"
+#include "task.h"
 
 // Define macro ----------------------------------------------------------------
+#define MP_TICK_PORT_MAX            portMAX_DELAY
+#define MP_TICK_PORT_FROM_MS(ms)    ( ms / portTICK_PERIOD_MS )
+#define MP_TICK_PORT_TO_MS(tick)    ( tick * portTICK_PERIOD_MS )
 
 // Typedef ---------------------------------------------------------------------
 typedef TickType_t mp_tick_t;
@@ -45,6 +49,11 @@ typedef TickType_t mp_tick_t;
 
 // Static inline functions -----------------------------------------------------
 static inline int mp_tick_port_init()
+{
+    return 0;
+}
+
+static inline int mp_tick_port_deinit()
 {
     return 0;
 }

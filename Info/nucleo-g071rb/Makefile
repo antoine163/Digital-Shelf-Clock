@@ -87,16 +87,16 @@ CSRC += drivers/stm32g0xx_hal_driver/Src/stm32g0xx_ll_utils.c
 CSRC += mpLib/mp.c
 CSRC += mpLib/utils/fifo.c
 CSRC += mpLib/portable/stm32g0xx/mp_interrupt_port.c
-CSRC += mpLib/portable/stm32g0xx/mp_tick_port.c
+#CSRC += mpLib/portable/stm32g0xx/mp_tick_port.c	No need with FreeRtos
 CSRC += mpLib/portable/stm32g0xx/mp_gpio_port.c
 CSRC += mpLib/portable/stm32g0xx/mp_uart_port.c
 #CSRC += mpLib/portable/stm32g0xx/mp_adc_port.c
 #CSRC += mpLib/portable/stm32g0xx/mp_spi_port.c
 
 ## FreeRTOS source files
-#CSRC += middlewares/FreeRTOS-Kernel/tasks.c
-#CSRC += middlewares/FreeRTOS-Kernel/list.c
-#CSRC += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c
+CSRC += middlewares/FreeRTOS-Kernel/tasks.c
+CSRC += middlewares/FreeRTOS-Kernel/list.c
+CSRC += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c
 
 # List of directories to include
 UINCDIR  = app
@@ -119,10 +119,10 @@ endif
 
 
 # List of release define in more
-RDEFS = 
+RDEFS = MP_PORT_FREERTOS
 
 # List of debug define in more
-DDEFS =
+DDEFS = MP_PORT_FREERTOS
 
 # List of libraries directory
 ULIBDIR =

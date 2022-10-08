@@ -622,9 +622,6 @@ int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap)
     int ret = 0;
     switch(request)
     {
-        //case MP_UART_CTL_TX_TIMEOUT: {mp_uart_port_t * dev = MP_PORT_UART_GET(devid); dev->timeoutTx = va_arg(ap, unsigned int); }break;
-        //case MP_UART_CTL_RX_TIMEOUT: {mp_uart_port_t * dev = MP_PORT_UART_GET(devid); dev->timeoutRx = va_arg(ap, unsigned int); }break;
-        
         // Todo: mp_assert() ou mp_err plustot que de retrouner -1
         default: ret = -1; break;
         //default: mp_err("The request=%u to control uart is not sported", request); break;
