@@ -497,32 +497,6 @@ ssize_t mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte,
     return n;
 }
 
-int mp_uart_port_waitEndTransmit(mp_device_id_t devid, mp_tick_t timeout)
-{
-    USART_TypeDef * uartx = MP_PORT_UART_GET(devid)->uartx;
-    
-#if defined MP_PORT_FREERTOS
-#else
-    // Get initial time to manager timeout
-    mp_tick_t tickStart = mp_tick_get();
-    
-    // Enable 'transmission complete interrupt' to wakeup the CPU when the
-    // last byte as transferred.
-    LL_USART_EnableIT_TC(uartx);
-    
-    // Wait the Transmission Complete flag or timeout
-    while(!LL_USART_IsActiveFlag_TC(uartx))
-    {
-        if (mp_tick_get() - tickStart >= timeout)
-            return 0;
-            
-        __WFI();
-    } 
-    
-    return 1;
-#endif 
-}
-
 // Si il n'y pas pas de donnée de disponible attem au maximume un timout.
 // Li les donner de la fifo de nbyte ou moin. si aucune donnée est displonible 
 // a laplle de la fonction atten au maximume un timeout.
@@ -537,28 +511,9 @@ ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte, mp_tic
     if (nbyte == 0)
         return 0;
 
-#if defined MP_PORT_FREERTOS
-#else
-    // No byte available in Rx FiFo ?
-    if (mp_fifo_isEmpty(dev->fifoRx))
-    {
-        // Get initial time to manager timeout
-        mp_tick_t tickStart = mp_tick_get();
-    
-        // Enable RX Not Empty and RX FIFO Not Empty Interrupt to wakeup the
-        // CPU when the a byte as receive.
-        LL_USART_EnableIT_RXNE_RXFNE(uartx);
-    
-        // Wait available byte or timeout.
-        while(mp_fifo_isEmpty(dev->fifoRx))
-        {
-            if (mp_tick_get() - tickStart >= timeout)
-                return 0;
-                
-            __WFI();
-        }
-    }
-#endif
+    // Wait available byte or timeout
+    if (mp_uart_port_waitDataReceive(devid, timeout) <= 0)
+        return 0;
 
     // Mask of CR1 to disable and enable interruption to pop data in the
     // Rx FiFo safely. The interruption used depend the uart mode, in Fifo mode
@@ -597,6 +552,64 @@ ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte, mp_tic
     ATOMIC_SET_BIT(uartx->CR1, cr1ItMask);
     
     return n;
+}
+
+
+int mp_uart_port_waitEndTransmit(mp_device_id_t devid, mp_tick_t timeout)
+{
+    USART_TypeDef * uartx = MP_PORT_UART_GET(devid)->uartx;
+    
+#if defined MP_PORT_FREERTOS
+#else
+    // Get initial time to manager timeout
+    mp_tick_t tickStart = mp_tick_get();
+    
+    // Enable 'transmission complete interrupt' to wakeup the CPU when the
+    // last byte as transferred.
+    LL_USART_EnableIT_TC(uartx);
+    
+    // Wait the Transmission Complete flag or timeout
+    while(!LL_USART_IsActiveFlag_TC(uartx))
+    {
+        if (mp_tick_get() - tickStart >= timeout)
+            return 0;
+            
+        __WFI();
+    } 
+    
+    return 1;
+#endif 
+}
+
+int mp_uart_port_waitDataReceive(mp_device_id_t devid, mp_tick_t timeout)
+{
+    mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
+    USART_TypeDef * uartx = dev->uartx;
+    
+#if defined MP_PORT_FREERTOS
+#else
+    // No byte available in Rx FiFo ?
+    if (mp_fifo_isEmpty(dev->fifoRx))
+    {
+        // Get initial time to manager timeout
+        mp_tick_t tickStart = mp_tick_get();
+    
+        // Enable RX Not Empty and RX FIFO Not Empty Interrupt to wakeup the
+        // CPU when the a byte as receive.
+        LL_USART_EnableIT_RXNE_RXFNE(uartx);
+    
+        // Wait available byte or timeout.
+        while(mp_fifo_isEmpty(dev->fifoRx))
+        {
+            if (mp_tick_get() - tickStart >= timeout)
+                return 0;
+                
+            __WFI();
+        }
+    }
+#endif
+
+    return mp_fifo_used(dev->fifoRx);
 }
 
 int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap)

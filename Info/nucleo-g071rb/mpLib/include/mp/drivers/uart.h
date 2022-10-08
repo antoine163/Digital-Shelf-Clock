@@ -64,17 +64,9 @@ typedef enum
 
 typedef enum
 {
-    // Note: MP_UART_PORT_PARITY_DEFINED can be define by "mp_uart_port_enum.h"
-    // frome "mp_port_enum.h"
-    //#if defined(MP_UART_PORT_PARITY_DEFINED)
-    //MP_UART_PARITY_NO   = MP_UART_PORT_PARITY_NO,
-    //MP_UART_PARITY_ODD  = MP_UART_PORT_PARITY_ODD,
-    //MP_UART_PARITY_EVEN = MP_UART_PORT_PARITY_EVEN
-    //#else 
     MP_UART_PARITY_NO,      //!< No parity.
     MP_UART_PARITY_ODD,     //!< ODD parity.
     MP_UART_PARITY_EVEN     //!< Even parity.
-    //#endif
 }mp_uart_parity_t;
 
 typedef enum
@@ -86,12 +78,6 @@ typedef enum
 }mp_uart_stopbit_t;
 
 // Define ----------------------------------------------------------------------
-//#define MP_UART_CTL_TX_TIMEOUT  0
-//#define MP_UART_CTL_RX_TIMEOUT  1
-//#define MP_UART_CTL_RX_MODE_BYTE   2
-//#define MP_UART_CTL_RX_MODE_FRAME  3
-
-//#define MP_UART_CTL_TX_WAIT_EMPTY  4
 
 // Structure -------------------------------------------------------------------
 typedef struct
@@ -236,6 +222,26 @@ static inline int mp_uart_waitEndTransmit(mp_device_id_t devid, mp_tick_t timeou
     return ret;
 }
 
+static inline int mp_uart_waitDataReceive(mp_device_id_t devid, mp_tick_t timeout)
+{
+    ssize_t ret = -1;
+    
+    #undef MP_DEV_UART
+    #define MP_DEV_UART(device, driver, peripheral)                    \
+        else if (MP_DEVICE_TYPE(devid) == MP_DRIVER_TYPE_UART_##driver)\
+        {                                                              \
+            ret = mp_uart_##driver##_waitDataReceive(devid, timeout);  \
+        }
+    
+    if(0){}
+    MP_DEVICES_TABLE
+    
+    #undef MP_DEV_UART
+    #define MP_DEV_UART(device, driver, peripheral)
+    
+    return ret;
+}
+
 static inline int mp_uart_ctl(mp_device_id_t devid, int request, ...)
 {
     int ret = -1;
@@ -259,25 +265,10 @@ static inline int mp_uart_ctl(mp_device_id_t devid, int request, ...)
     return ret;
 }
 
-//static inline int mp_uart_waitEndTransmission(mp_device_id_t devid, unsigned int timeout)
-//{
-    //return -1;
-//}
-
-//static inline int mp_uart_waitDataReception(mp_device_id_t devid, unsigned int timeout)
-//{
-    //return -1;
-//}
-
-//static inline int mp_uart_waitFrameReception(mp_device_id_t devid, unsigned int timeout)
-//{
-    //return -1;
-//}
-
 // Note: fonction pour fair des printf rapide. si plusiteur uarte son definie
 // dans la table des device il peut étre préférable de re emplementer cette fonction.
 // Todo: Completer/améliorer le comentére si dessus
-// @note: le printef prend bocoup de place ...
+// @note: le printf prend bocoup de place ...
 static inline int mp_uart_printf(mp_device_id_t devid, char const * format, ...)
 {
     int ret = -1;

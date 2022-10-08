@@ -73,24 +73,12 @@ int mp_uart_port_config(mp_device_id_t devid,
                         mp_uart_parity_t parity, mp_uart_stopbit_t stopbit);
 int mp_uart_port_ctl(mp_device_id_t devid, int request, va_list ap);
 
-//ssize_t mp_uart_port_pushByte(mp_device_id_t devid, uint8_t byte, mp_tick_t timeout);
-//ssize_t mp_uart_port_pushHalfWord(mp_device_id_t devid, uint16_t halfWord, mp_tick_t timeout);
-//ssize_t mp_uart_port_pushWord(mp_device_id_t devid, uint32_t word, mp_tick_t timeout);
 ssize_t mp_uart_port_write(mp_device_id_t devid, void const * buf, size_t nbyte, mp_tick_t timeout);
 ssize_t mp_uart_port_read(mp_device_id_t devid, void * buf, size_t nbyte, mp_tick_t timeout);
-//ssize_t mp_uart_port_transmit(mp_device_id_t devid, void const * buf, size_t nbyte);
-//ssize_t mp_uart_port_receive(mp_device_id_t devid, void * buf, size_t nbyte);
 
 int mp_uart_port_waitEndTransmit(mp_device_id_t devid, mp_tick_t timeout);
-//int mp_uart_port_waitDataReceive(mp_device_id_t devid, mp_tick_t timeout);
+int mp_uart_port_waitDataReceive(mp_device_id_t devid, mp_tick_t timeout);
 //int mp_uart_port_waitFrameReceive(mp_device_id_t devid, mp_tick_t timeout);
-
-//int mp_uart_port_isEndTransmit(mp_device_id_t devid);
-//int mp_uart_port_isDataReceive(mp_device_id_t devid);
-//int mp_uart_port_isFrameReceive(mp_device_id_t devid);
-
-
-
 
 
 // Static inline ISR -----------------------------------------------------------
