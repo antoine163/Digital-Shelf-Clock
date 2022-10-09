@@ -37,9 +37,22 @@
 // mpLib
 #include "mp/utils/fifo.h"
 
+// FreeRtos
+#if defined MP_USE_FREERTOS
+#include "FreeRTOS.h"
+#include "task.h"
+#endif
+
 // Define macro ----------------------------------------------------------------
 #define MP_PORT_UART(dev)           ((mp_uart_port_t *)dev)
 #define MP_PORT_UART_GET(devid)     MP_PORT_UART(mp_device_get(devid))
+
+// Define ----------------------------------------------------------------------
+#define MP_UART_PORT_NOTIFY_NONE      (0<<0)
+#define MP_UART_PORT_NOTIFY_TXFIFO_NO_FULL      (1<<0)
+#define MP_UART_PORT_NOTIFY_TXFIFO_EMPTY        (1<<1)
+#define MP_UART_PORT_NOTIFY_RXFIFO_NO_EMPTY     (1<<2)
+//#define MP_UART_PORT_NOTIFY_RXFIFO_FRAME        (1<<3)
 
 // Structure -------------------------------------------------------------------
 typedef struct
@@ -50,9 +63,11 @@ typedef struct
     mp_fifo_t * fifoRx;
     mp_fifo_t * fifoTx;
     
-    #ifdef MP_PORT_FREERTOS
-    #else
-    #endif
+#if defined MP_USE_FREERTOS
+    TaskHandle_t xTaskHandle; // Note: Avec FreeRtos un driver peut étre utiliser que d'en une seulle tache
+    UBaseType_t uxIndexToNotify;// Du cela pourai peut étre étre intereser de déplaser xTaskHandle et uxIndexToNotify dans la structure mer device_t et ajouter une fonction pour changer la tache ou fonction le driver
+    uint32_t notify;
+#endif
 }mp_uart_port_t;
 
 // Extern protected global variables -------------------------------------------
@@ -87,6 +102,9 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
 {
     USART_TypeDef * uartx = dev->uartx;
     
+// Todo Mise au preopre !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
     // -- Manage transmit data --
     
     // The USART Tx FiFo is empty ?
@@ -107,8 +125,16 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         // Disable USART Tx FiFo empty interrupt if the data Tx FiFo is empty.
         if (mp_fifo_isEmpty(dev->fifoTx))
             LL_USART_DisableIT_TXFE(uartx);
+            
+    #if defined MP_USE_FREERTOS
+        if (dev->notify & MP_UART_PORT_NOTIFY_TXFIFO_NO_FULL)
+        {
+            UBaseType_t uxIndexToNotify = MP_DEVICE_ID(MP_DEVICE(dev)->devid);
+            vTaskNotifyGiveIndexedFromISR(dev->xTaskHandle, uxIndexToNotify, &xHigherPriorityTaskWoken);
+        }
+    #endif
     }
-    
+
     // The USART Transition is complete ?
     if (    LL_USART_IsEnabledIT_TC(uartx) &&
             LL_USART_IsActiveFlag_TC(uartx))
@@ -117,8 +143,13 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         // waitEndTransmit() function. So, disable only it.
         LL_USART_DisableIT_TC(uartx);
         
-#if defined MP_PORT_FREERTOS
-#endif
+    #if defined MP_USE_FREERTOS
+        if (dev->notify & MP_UART_PORT_NOTIFY_TXFIFO_EMPTY)
+        {
+            UBaseType_t uxIndexToNotify = MP_DEVICE_ID(MP_DEVICE(dev)->devid);
+            vTaskNotifyGiveIndexedFromISR(dev->xTaskHandle, uxIndexToNotify, &xHigherPriorityTaskWoken);
+        }
+    #endif
     }
     
     // -- Manage receive data --
@@ -161,9 +192,17 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         if (mp_fifo_isFull(dev->fifoRx))
             LL_USART_DisableIT_RXFF(uartx);
         
-#if defined MP_PORT_FREERTOS
-#endif
+    #if defined MP_USE_FREERTOS
+        if (dev->notify & MP_UART_PORT_NOTIFY_RXFIFO_NO_EMPTY)
+        {
+            UBaseType_t uxIndexToNotify = MP_DEVICE_ID(MP_DEVICE(dev)->devid);
+            vTaskNotifyGiveIndexedFromISR(dev->xTaskHandle, uxIndexToNotify, &xHigherPriorityTaskWoken);
+        }
+    #endif
     }
+    
+// Todo Mise au preopre !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
 __attribute__((always_inline))
@@ -195,7 +234,7 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
         // waitEndTransmit() function. So, disable only it.
         LL_USART_DisableIT_TC(uartx);
 
-#if defined MP_PORT_FREERTOS
+#if defined MP_USE_FREERTOS
 #endif
     }
     

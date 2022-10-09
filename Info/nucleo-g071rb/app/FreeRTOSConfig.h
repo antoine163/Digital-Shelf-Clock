@@ -34,14 +34,14 @@ extern uint32_t SystemCoreClock;
 #define configUSE_TICKLESS_IDLE                 0
 #define configCPU_CLOCK_HZ                      ( SystemCoreClock )
 //#define configSYSTICK_CLOCK_HZ                  1000000
-#define configTICK_RATE_HZ                      ( (TickType_t ) 100 )
+#define configTICK_RATE_HZ                      ( (TickType_t ) 1000 )
 #define configMAX_PRIORITIES                    3
 #define configMINIMAL_STACK_SIZE                ( ( uint16_t ) 64 )
 #define configMAX_TASK_NAME_LEN                 16
 #define configUSE_16_BIT_TICKS                  0
 #define configIDLE_SHOULD_YIELD                 0
-#define configUSE_TASK_NOTIFICATIONS            0
-#define configTASK_NOTIFICATION_ARRAY_ENTRIES   1
+#define configUSE_TASK_NOTIFICATIONS            1
+#define configTASK_NOTIFICATION_ARRAY_ENTRIES   10
 #define configUSE_MUTEXES                       0
 #define configUSE_RECURSIVE_MUTEXES             0
 #define configUSE_COUNTING_SEMAPHORES           0
@@ -118,7 +118,7 @@ standard names. */
 #define INCLUDE_vTaskDelayUntil                 0
 #define INCLUDE_vTaskDelay                      1
 #define INCLUDE_xTaskGetSchedulerState          0
-#define INCLUDE_xTaskGetCurrentTaskHandle       0
+#define INCLUDE_xTaskGetCurrentTaskHandle       1
 #define INCLUDE_uxTaskGetStackHighWaterMark     0
 #define INCLUDE_xTaskGetIdleTaskHandle          0
 #define INCLUDE_eTaskGetState                   0

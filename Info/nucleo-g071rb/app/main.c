@@ -65,6 +65,11 @@ int main()
     return 0;
 }
 
+void HardFault_Handler()
+{
+    asm("BKPT 0");
+}
+
 /* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
 implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
 used by the Idle task. */

@@ -112,10 +112,10 @@ void task_test( void* pvParameters )
     mp_gpio_init(dev_gpiof);
     
     /* GPIO OUT:    name,           type,   pull,   default level             */
-    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     1);
-    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     1);
+    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     0);
+    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     0);
     MP_GPIO_OUT(PIN_LED_GREEN,  PUSH_PULL,  NO,     LOW);
-    MP_GPIO_OUT(PIN_LED_YELLOW, PUSH_PULL,  NO,     HIGH);
+    MP_GPIO_OUT(PIN_LED_YELLOW, PUSH_PULL,  NO,     LOW);
     /* AFF_7SEG                                                               */
     MP_GPIO_OUT(AFF_7SEG,       PUSH_PULL,  NO,     MASK(0x7f));
     /* GPIO IN:     name,                   pull                              */
@@ -131,48 +131,37 @@ void task_test( void* pvParameters )
     
     
     
-    mp_uart_init(dev_ws2812b);
-    mp_uart_config(dev_ws2812b, 2500000, 7, 0, 1);
-    //mp_uart_ctl(dev_ws2812b, MP_UART_CTL_TX_TIMEOUT, MP_TICK_MAX);
-    //mp_uart_config(dev_ws2812b, 8000000, 8, 0, 1); // Todo: verifier si le 8MHz est possible avec la clock de 'uart ...
-    //mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
-    //ws2812b_reset();
-    //mp_tick_delay(MP_TICK_FROM_MS(1));
-    //ws2812b_update();
+    //mp_uart_init(dev_ws2812b);
+    //mp_uart_config(dev_ws2812b, 2500000, 7, 0, 1);
+    ////mp_uart_config(dev_ws2812b, 8000000, 8, 0, 1); // Todo: verifier si le 8MHz est possible avec la clock de 'uart ...
+    ////mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
+    ////ws2812b_reset();
+    ////mp_tick_delay(MP_TICK_FROM_MS(1));
+    ////ws2812b_update();
     
     mp_uart_init(dev_tty);
     //mp_uart_config(dev_tty, 115200, 8, 0, 1);
     mp_uart_config(dev_tty, 2000000, 8, 0, 1);
-    //mp_uart_ctl(dev_tty, MP_UART_CTL_TX_TIMEOUT, MP_TICK_MAX);
-    //mp_uart_ctl(dev_tty, MP_UART_CTL_RX_TIMEOUT, 100);
-    //mp_uart_printf(dev_tty, "\r\nnucleo-g071rb inisilised !\r");
     
-    //mp_tick_delayMs(3000);
-    //mp_uart_printf(dev_tty, "Write something:");
+
+    mp_uart_printf(dev_tty, "\r\nnucleo-g071rb inisilised !\r\n");
+    mp_uart_printf(dev_tty, "Write something:");
     
     while(1)
     {
         uint8_t buf[32];
-
         memset(buf, 0, sizeof(buf));
-        //mp_uart_printf(dev_tty, "Write something:");
         int n = mp_uart_read(dev_tty, buf, sizeof(buf), MP_TICK_MAX);
-        
-        //if (n ==1 && buf[0]=='\r')
-            //mp_uart_printf(dev_tty, "\r\n");
-        //else if (n == 2 )
-        //{
-            //__NOP();
-            //mp_uart_printf(dev_tty, "(%u)'%s'", n, buf);
-        //}
-        //else
-            //mp_uart_printf(dev_tty, "(%u)'%s'\r\n", n, buf);
         mp_uart_write(dev_tty, buf, n, -1);
-        
-        //mp_tick_delayMs(100);
     }
     
-#if 1
+    while(1)
+    {
+        mp_gpio_toggle(LED_GREEN);
+        mp_tick_delayMs(500);
+    }
+    
+#if 0
     int cpt = 0;
     while (1)
     {
@@ -234,30 +223,30 @@ void task_test( void* pvParameters )
 
 void bp1Handler(mp_gpio_trigger_t)
 {
-    cpt2++;
+    //cpt2++;
     
-    brightness_led++;
-    ws2812b_update_led = 1;
+    //brightness_led++;
+    //ws2812b_update_led = 1;
 }
 
 void bp2Handler(mp_gpio_trigger_t)
 {
-    cpt2--;
-    if( cpt2 < 0)
-        cpt2 = 0;
+    //cpt2--;
+    //if( cpt2 < 0)
+        //cpt2 = 0;
         
-    brightness_led--;
-    ws2812b_update_led = 1;
+    //brightness_led--;
+    //ws2812b_update_led = 1;
 }
 
 void bpLedHandler(mp_gpio_trigger_t)
 {
-    cpt2 = 0;
-    if( cpt2 >= (int)sizeof(digit))
-        cpt2 = sizeof(digit)-1;
+    //cpt2 = 0;
+    //if( cpt2 >= (int)sizeof(digit))
+        //cpt2 = sizeof(digit)-1;
         
-    brightness_led = 0;
-    ws2812b_update_led = 1;
+    //brightness_led = 0;
+    //ws2812b_update_led = 1;
 }
 
 

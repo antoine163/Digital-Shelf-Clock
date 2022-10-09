@@ -96,6 +96,7 @@ CSRC += mpLib/portable/stm32g0xx/mp_uart_port.c
 ## FreeRTOS source files
 CSRC += middlewares/FreeRTOS-Kernel/tasks.c
 CSRC += middlewares/FreeRTOS-Kernel/list.c
+#CSRC += middlewares/FreeRTOS-Kernel/queue.c
 CSRC += middlewares/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c
 
 # List of directories to include
@@ -119,10 +120,10 @@ endif
 
 
 # List of release define in more
-RDEFS = MP_PORT_FREERTOS
+RDEFS = MP_USE_FREERTOS
 
 # List of debug define in more
-DDEFS = MP_PORT_FREERTOS
+DDEFS = MP_USE_FREERTOS
 
 # List of libraries directory
 ULIBDIR =

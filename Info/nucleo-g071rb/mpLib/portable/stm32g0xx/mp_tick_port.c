@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#if defined MP_PORT_FREERTOS
+#if defined MP_USE_FREERTOS
     // No need to include source file for FreeRtos tick management.
 #elif defined MP_TICK_FROM_TIMER
     // Include source file, to manager tick from a generic timer.
