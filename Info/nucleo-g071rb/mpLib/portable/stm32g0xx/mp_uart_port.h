@@ -233,9 +233,9 @@ static inline void mp_uart_port_usart1_isr()
     MP_DEVICE(_mp_uart_port_usart1_dev)->higherPriorityTaskWoken = pdFALSE;
 #endif
 
-    //if (IS_UART_FIFO_INSTANCE(USART1))
-        //mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart1_dev);
-    //else
+    if (IS_UART_FIFO_INSTANCE(USART1))
+        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart1_dev);
+    else
         mp_uart_port_usartx_isr(_mp_uart_port_usart1_dev);
 
 #if defined MP_USE_FREERTOS
@@ -250,9 +250,9 @@ static inline void mp_uart_port_usart2_isr()
     MP_DEVICE(_mp_uart_port_usart2_dev)->higherPriorityTaskWoken = pdFALSE;
 #endif
 
-    //if (IS_UART_FIFO_INSTANCE(USART2))
-        //mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart2_dev);
-    //else
+    if (IS_UART_FIFO_INSTANCE(USART2))
+        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart2_dev);
+    else
         mp_uart_port_usartx_isr(_mp_uart_port_usart2_dev);
 
 #if defined MP_USE_FREERTOS

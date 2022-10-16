@@ -429,8 +429,8 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     // Todo activer ou pas LL_USART_OVERSAMPLING_16
     
     // Enable a FiFo mode is the USART is compatible.
-    //if (IS_UART_FIFO_INSTANCE(uartx))
-        //LL_USART_EnableFIFO(uartx);
+    if (IS_UART_FIFO_INSTANCE(uartx))
+        LL_USART_EnableFIFO(uartx);
     
     /* (5) Enable USART *********************************************************/
     LL_USART_Enable(uartx);
