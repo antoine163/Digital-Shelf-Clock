@@ -59,14 +59,37 @@ typedef struct
 }mp_uart_port_t;
 
 // Extern protected global variables -------------------------------------------
-extern mp_uart_port_t * _mp_uart_port_usart1_dev;
-extern mp_uart_port_t * _mp_uart_port_usart2_dev;
-extern mp_uart_port_t * _mp_uart_port_usart3_dev;
-extern mp_uart_port_t * _mp_uart_port_usart4_dev;
-extern mp_uart_port_t * _mp_uart_port_usart5_dev;
-extern mp_uart_port_t * _mp_uart_port_usart6_dev;
-extern mp_uart_port_t * _mp_uart_port_lpuart1_dev;
-extern mp_uart_port_t * _mp_uart_port_lpuart2_dev;
+#ifdef USART1
+    extern mp_uart_port_t * _mp_uart_port_usart1_dev;
+#endif // USART1
+
+#ifdef USART2
+    extern mp_uart_port_t * _mp_uart_port_usart2_dev;
+#endif // USART2
+
+#ifdef USART3
+    extern mp_uart_port_t * _mp_uart_port_usart3_dev;
+#endif // USART3
+
+#ifdef USART4
+    extern mp_uart_port_t * _mp_uart_port_usart4_dev;
+#endif // USART4
+
+#ifdef USART5
+    extern mp_uart_port_t * _mp_uart_port_usart5_dev;
+#endif // USART5
+
+#ifdef USART6
+    extern mp_uart_port_t * _mp_uart_port_usart6_dev;
+#endif // USART6
+
+#ifdef LPUART1
+    extern mp_uart_port_t * _mp_uart_port_lpuart1_dev;
+#endif // LPUART1
+
+#ifdef LPUART2
+    extern mp_uart_port_t * _mp_uart_port_lpuart2_dev;
+#endif // LPUART2
 
 // Prototype functions ---------------------------------------------------------
 int mp_uart_port_init(mp_device_id_t devid);
@@ -89,6 +112,10 @@ __attribute__((always_inline))
 static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
 {
     USART_TypeDef * uartx = dev->uartx;
+    
+#ifdef MP_USE_FREERTOS
+    MP_DEVICE(dev)->higherPriorityTaskWoken = pdFALSE;
+#endif // MP_USE_FREERTOS
     
     // -- Manage transmit data --
     
@@ -170,12 +197,20 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         // Send synchro to unblock task
         MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_RXFIFO_NO_EMPTY);
     }
+    
+#ifdef MP_USE_FREERTOS
+    portYIELD_FROM_ISR(MP_DEVICE(dev)->higherPriorityTaskWoken);
+#endif // MP_USE_FREERTOS
 }
 
 __attribute__((always_inline))
 static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
 {
     USART_TypeDef * uartx = dev->uartx;
+    
+#ifdef MP_USE_FREERTOS
+    MP_DEVICE(dev)->higherPriorityTaskWoken = pdFALSE;
+#endif // MP_USE_FREERTOS
     
     // -- Manage transmit data --
     
@@ -224,40 +259,114 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
         // Send synchro to unblock task
         MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_RXFIFO_NO_EMPTY);
     }
+    
+#ifdef MP_USE_FREERTOS
+    portYIELD_FROM_ISR(MP_DEVICE(dev)->higherPriorityTaskWoken);
+#endif // MP_USE_FREERTOS
 }
 
-__attribute__((always_inline))
-static inline void mp_uart_port_usart1_isr()
-{
-#if defined MP_USE_FREERTOS
-    MP_DEVICE(_mp_uart_port_usart1_dev)->higherPriorityTaskWoken = pdFALSE;
-#endif
+#ifdef USART1
+    __attribute__((always_inline))
+    static inline void mp_uart_port_usart1_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_usart1_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(USART1))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // USART1
 
-    if (IS_UART_FIFO_INSTANCE(USART1))
-        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart1_dev);
-    else
-        mp_uart_port_usartx_isr(_mp_uart_port_usart1_dev);
+#ifdef USART2
+    __attribute__((always_inline))
+    static inline void mp_uart_port_usart2_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_usart2_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(USART2))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // USART2
 
-#if defined MP_USE_FREERTOS
-    portYIELD_FROM_ISR(MP_DEVICE(_mp_uart_port_usart1_dev)->higherPriorityTaskWoken);
-#endif
-}
+#ifdef USART3
+    __attribute__((always_inline))
+    static inline void mp_uart_port_usart3_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_usart3_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(USART3))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // USART3
 
-__attribute__((always_inline))
-static inline void mp_uart_port_usart2_isr()
-{
-#if defined MP_USE_FREERTOS
-    MP_DEVICE(_mp_uart_port_usart2_dev)->higherPriorityTaskWoken = pdFALSE;
-#endif
+#ifdef USART4
+    __attribute__((always_inline))
+    static inline void mp_uart_port_usart4_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_usart4_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(USART4))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // USART4
 
-    if (IS_UART_FIFO_INSTANCE(USART2))
-        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart2_dev);
-    else
-        mp_uart_port_usartx_isr(_mp_uart_port_usart2_dev);
+#ifdef USART5
+    __attribute__((always_inline))
+    static inline void mp_uart_port_usart5_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_usart5_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(USART5))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // USART5
 
-#if defined MP_USE_FREERTOS
-    portYIELD_FROM_ISR(MP_DEVICE(_mp_uart_port_usart2_dev)->higherPriorityTaskWoken);
-#endif
-}
+#ifdef USART6
+    __attribute__((always_inline))
+    static inline void mp_uart_port_usart6_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_usart6_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(USART6))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // USART6
+
+#ifdef LPUART1
+    __attribute__((always_inline))
+    static inline void mp_uart_port_lpuart1_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_lpuart1_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(LPUART1))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // LPUART1
+
+#ifdef LPUART2
+    __attribute__((always_inline))
+    static inline void mp_uart_port_lpuart2_isr()
+    {
+        mp_uart_port_t * dev = _mp_uart_port_lpuart2_dev;
+        
+        if (IS_UART_FIFO_INSTANCE(LPUART2))
+            mp_uart_port_usartx_fifo_isr(dev);
+        else
+            mp_uart_port_usartx_isr(dev);
+    }
+#endif // LPUART2
 
 #endif // MP_UART_PORT_H

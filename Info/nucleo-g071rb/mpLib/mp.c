@@ -60,7 +60,7 @@
 #include "mp_undef_all_dev.h"
 
 
-#if defined MP_USE_FREERTOS
+#ifdef MP_USE_FREERTOS
     #define MP_DEV_STRUCT_INIT_FREERTOS(dev_struct)                    \
         .dev_struct.syncType = 0,                                      \
         .dev_struct.taskToNotify = NULL,

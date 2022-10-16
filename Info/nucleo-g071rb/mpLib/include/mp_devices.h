@@ -30,7 +30,7 @@
 #include "mp_drivers.h"
 
 // FreeRtos
-#if defined MP_USE_FREERTOS
+#ifdef MP_USE_FREERTOS
 #include "FreeRTOS.h"
 #include "task.h"
 #endif
@@ -42,7 +42,7 @@
 #define MP_DEVICE_ID(devid)         ( devid & 0x0000ffff )
 #define MP_DEVICE_TYPE(devid)     ( ( devid & 0xffff0000 ) >> 16 )
 
-#if defined __DOXYGEN__
+#ifdef __DOXYGEN__
     /**
      * @brief Macro to send synchro from ISR.
      * 
@@ -96,7 +96,7 @@
     #define MP_DEVICE_WAIT_SYNC(dev,    code_condition, sync_type,     \
                                         timeout,        code_out) 
 
-#elif defined MP_USE_FREERTOS
+#elifdef MP_USE_FREERTOS
     // MP_DEVICE_SEND_SYNC_FROM_ISR defined for FreeRtos
     #define MP_DEVICE_SEND_SYNC_FROM_ISR(dev, sync_type)               \
     do {                                                               \
@@ -191,11 +191,11 @@ typedef struct
 {
     mp_device_id_t const devid;
     
-#if defined MP_USE_FREERTOS
+#ifdef MP_USE_FREERTOS
     TaskHandle_t taskToNotify;
     BaseType_t higherPriorityTaskWoken;
     uint32_t syncType;
-#endif
+#endif // MP_USE_FREERTOS
 } mp_device_t;
 
 // extern global variable ------------------------------------------------------

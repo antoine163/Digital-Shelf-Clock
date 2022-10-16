@@ -35,61 +35,39 @@
 #include <string.h>
 
 // Protected global variables --------------------------------------------------
-mp_uart_port_t * _mp_uart_port_usart1_dev = NULL;
-mp_uart_port_t * _mp_uart_port_usart2_dev = NULL;
-mp_uart_port_t * _mp_uart_port_usart3_dev = NULL;
-mp_uart_port_t * _mp_uart_port_usart4_dev = NULL;
-mp_uart_port_t * _mp_uart_port_usart5_dev = NULL;
-mp_uart_port_t * _mp_uart_port_usart6_dev = NULL;
-mp_uart_port_t * _mp_uart_port_lpuart1_dev = NULL;
-mp_uart_port_t * _mp_uart_port_lpuart2_dev = NULL;
+#ifdef USART1
+    mp_uart_port_t * _mp_uart_port_usart1_dev = NULL;
+#endif // USART1
+
+#ifdef USART2
+    mp_uart_port_t * _mp_uart_port_usart2_dev = NULL;
+#endif // USART2
+
+#ifdef USART3
+    mp_uart_port_t * _mp_uart_port_usart3_dev = NULL;
+#endif // USART3
+
+#ifdef USART4
+    mp_uart_port_t * _mp_uart_port_usart4_dev = NULL;
+#endif // USART4
+
+#ifdef USART5
+    mp_uart_port_t * _mp_uart_port_usart5_dev = NULL;
+#endif // USART5
+
+#ifdef USART6
+    mp_uart_port_t * _mp_uart_port_usart6_dev = NULL;
+#endif // USART6
+
+#ifdef LPUART1
+    mp_uart_port_t * _mp_uart_port_lpuart1_dev = NULL;
+#endif // LPUART1
+
+#ifdef LPUART2
+    mp_uart_port_t * _mp_uart_port_lpuart2_dev = NULL;
+#endif // LPUART2
 
 // Implemented functions -------------------------------------------------------
-
-/**
- * 
- * Define of USART2 in mpHardMap.h file
- * 
- * - MP_USART2_TX_GPIO_Port
- * - MP_USART2_TX_Pin
- * - MP_USART2_TX_AF
- * - MP_USART2_TX_SPEED
- * - MP_USART2_TX_PULL
- * - MP_USART2_TX_OUTPUT
- * - MP_USART2_TX_PIN_LEVEL
- * - 
- * - MP_USART2_RX_GPIO_Port
- * - MP_USART2_RX_Pin
- * - MP_USART2_RX_AF
- * - MP_USART2_RX_SPEED
- * - MP_USART2_RX_PULL
- * - MP_USART2_RX_OUTPUT
- * - MP_USART2_RX_PIN_LEVEL
- *
- * - MP_USART2_CLKSOURCE
- * - MP_USART2_TXRX_SWAPPED
- * 
- * Interrupt:
- * - MP_USART1_IRQ_PRIORITY
- * - MP_USART2_IRQ_PRIORITY
- * - MP_USART3_IRQ_PRIORITY
- * - MP_USART4_IRQ_PRIORITY
- * - MP_USART5_IRQ_PRIORITY
- * - MP_USART6_IRQ_PRIORITY
- * 
- * 
- * IRQHandler :
- * - USART1
- * - USART2_LPUART2
- * - USART3_4_5_6_LPUART1
- * - USART2
- * - USART3_4_LPUART1
- * 
- */
- 
- // If the USART is compatible with FiFo mode this will be enable.
-    // This allows to reduce the number of interruption to receive/transfer 
-    // the data.
 
 /**
  * @ingroup port_stm32g0x
@@ -107,58 +85,58 @@ int mp_uart_port_init(mp_device_id_t devid)
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
 
-#if defined MP_USE_FREERTOS
+#ifdef MP_USE_FREERTOS
     MP_DEVICE(dev)->taskToNotify = xTaskGetCurrentTaskHandle();
-#endif
+#endif // MP_USE_FREERTOS
     
     // USART1
     // =================================
-    #if defined(MP_USART1_RX_GPIO_Port) || defined(MP_USART1_TX_GPIO_Port)
+#if defined(MP_USART1_RX_GPIO_Port) || defined(MP_USART1_TX_GPIO_Port)
     #ifndef USART1
-    #error "MP_USART1_*** is defined in mpHardMap.h but the USART1 is not available on your stm32g0 !"
-    #endif
+        #error "MP_USART1_RX_GPIO_Port or/and MP_USART1_TX_GPIO_Port is defined in mpHardMap.h but the USART1 is not available on your stm32g0 !"
+    #endif // USART1
     if (uartx == USART1)
     {
         uint32_t transferDirection = LL_LPUART_DIRECTION_NONE;
         
-        #ifdef MP_USART1_RX_GPIO_Port
-            transferDirection |= LL_LPUART_DIRECTION_RX;
+    #ifdef MP_USART1_RX_GPIO_Port
+        transferDirection |= LL_LPUART_DIRECTION_RX;
+    
+        // Configure RX Pin as : Alternate function
+        LL_GPIO_SetPinMode(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, LL_GPIO_MODE_ALTERNATE);
+        if(MP_USART1_RX_Pin <= LL_GPIO_PIN_7)
+            LL_GPIO_SetAFPin_0_7(   MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_AF);
+        else
+            LL_GPIO_SetAFPin_8_15(  MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_AF);
+        LL_GPIO_SetPinSpeed(        MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_SPEED);
+        LL_GPIO_SetPinPull(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_PULL);
         
-            // Configure RX Pin as : Alternate function
-            LL_GPIO_SetPinMode(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, LL_GPIO_MODE_ALTERNATE);
-            if(MP_USART1_RX_Pin <= LL_GPIO_PIN_7)
-                LL_GPIO_SetAFPin_0_7(   MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_AF);
-            else
-                LL_GPIO_SetAFPin_8_15(  MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_AF);
-            LL_GPIO_SetPinSpeed(        MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_SPEED);
-            LL_GPIO_SetPinPull(         MP_USART1_RX_GPIO_Port, MP_USART1_RX_Pin, MP_USART1_RX_PULL);
-            
-            // Init Rx FiFo
-            static mp_fifo_t uart1FifoRx;
-            static uint8_t uart1FifoRxStorageBuffer[MP_USART1_RX_FIFO_SIZE];
-            mp_fifo_init(&uart1FifoRx, uart1FifoRxStorageBuffer, MP_USART1_RX_FIFO_SIZE);
-            dev->fifoRx = &uart1FifoRx;
-        #endif
+        // Init Rx FiFo
+        static mp_fifo_t uart1FifoRx;
+        static uint8_t uart1FifoRxStorageBuffer[MP_USART1_RX_FIFO_SIZE];
+        mp_fifo_init(&uart1FifoRx, uart1FifoRxStorageBuffer, MP_USART1_RX_FIFO_SIZE);
+        dev->fifoRx = &uart1FifoRx;
+    #endif // MP_USART1_RX_GPIO_Port
+    
+    #ifdef MP_USART1_TX_GPIO_Port
+        transferDirection |= LL_LPUART_DIRECTION_TX;
         
-        #ifdef MP_USART1_TX_GPIO_Port
-            transferDirection |= LL_LPUART_DIRECTION_TX;
-            
-            // Configure TX Pin as : Alternate function
-            LL_GPIO_SetPinMode(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, LL_GPIO_MODE_ALTERNATE);
-            if(MP_USART1_TX_Pin <= LL_GPIO_PIN_7)
-                LL_GPIO_SetAFPin_0_7(   MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_AF);
-            else
-                LL_GPIO_SetAFPin_8_15(  MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_AF);
-            LL_GPIO_SetPinSpeed(        MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_SPEED);
-            LL_GPIO_SetPinOutputType(   MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_OUTPUT);
-            LL_GPIO_SetPinPull(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_PULL);
-            
-            // Init Tx FiFo
-            static mp_fifo_t uart1FifoTx;
-            static uint8_t uart1FifoTxStorageBuffer[MP_USART1_TX_FIFO_SIZE];
-            mp_fifo_init(&uart1FifoTx, uart1FifoTxStorageBuffer, MP_USART1_TX_FIFO_SIZE);
-            dev->fifoTx = &uart1FifoTx;
-        #endif
+        // Configure TX Pin as : Alternate function
+        LL_GPIO_SetPinMode(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, LL_GPIO_MODE_ALTERNATE);
+        if(MP_USART1_TX_Pin <= LL_GPIO_PIN_7)
+            LL_GPIO_SetAFPin_0_7(   MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_AF);
+        else
+            LL_GPIO_SetAFPin_8_15(  MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_AF);
+        LL_GPIO_SetPinSpeed(        MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_SPEED);
+        LL_GPIO_SetPinOutputType(   MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_OUTPUT);
+        LL_GPIO_SetPinPull(         MP_USART1_TX_GPIO_Port, MP_USART1_TX_Pin, MP_USART1_TX_PULL);
+        
+        // Init Tx FiFo
+        static mp_fifo_t uart1FifoTx;
+        static uint8_t uart1FifoTxStorageBuffer[MP_USART1_TX_FIFO_SIZE];
+        mp_fifo_init(&uart1FifoTx, uart1FifoTxStorageBuffer, MP_USART1_TX_FIFO_SIZE);
+        dev->fifoTx = &uart1FifoTx;
+    #endif // MP_USART1_TX_GPIO_Port
         
         // Enable the USART1 peripheral clock and clock source.
         LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
@@ -172,28 +150,23 @@ int mp_uart_port_init(mp_device_id_t devid)
         // Set TX/RX direction
         LL_LPUART_SetTransferDirection(USART1, transferDirection);
         
-        #ifdef MP_USART1_RX_PIN_LEVEL
+    #ifdef MP_USART1_RX_PIN_LEVEL
         LL_USART_SetRXPinLevel(USART1, MP_USART1_RX_PIN_LEVEL);
-        #endif
+    #endif // MP_USART1_RX_PIN_LEVEL
         
-        #ifdef MP_USART1_TX_PIN_LEVEL
+    #ifdef MP_USART1_TX_PIN_LEVEL
         LL_USART_SetTXPinLevel(USART1, MP_USART1_TX_PIN_LEVEL);
-        #endif
-        
-        //#ifdef MP_USART1_RX_GPIO_Port
-        //// Enable RXNE and Error interrupts.
-        //LL_USART_EnableIT_RXNE_RXFNE(USART1);
-        //#endif
-        
+    #endif // MP_USART1_TX_PIN_LEVEL
+    
         return 0;
     }
-    #endif
+#endif // defined(MP_USART1_RX_GPIO_Port) || defined(MP_USART1_TX_GPIO_Port)
     
     // USART2
     // =================================
-    #if defined(MP_USART2_RX_GPIO_Port) || defined(MP_USART2_TX_GPIO_Port)
+#if defined(MP_USART2_RX_GPIO_Port) || defined(MP_USART2_TX_GPIO_Port)
     #ifndef USART2
-    #error "MP_USART2_*** is defined in mpHardMap.h but the USART2 is not available on your stm32g0 !"
+        #error "MP_USART2_RX_GPIO_Port or/and MP_USART2_TX_GPIO_Port is defined in mpHardMap.h but the USART1 is not available on your stm32g0 !"
     #endif
     if (uartx == USART2)
     {

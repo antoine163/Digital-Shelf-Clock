@@ -25,10 +25,10 @@
 #ifndef MP_TICK_PORT_H
 #define MP_TICK_PORT_H
 
-#if defined MP_USE_FREERTOS
+#ifdef MP_USE_FREERTOS
     // Include header file, to manager tick from FreeRtos.
     #include "mp_tick_port_freertos.h"
-#elif defined MP_TICK_FROM_TIMER
+#elifdef MP_TICK_FROM_TIMER
     // Include header file, to manager tick from a generic timer.
     #include "mp_tick_port_timer.h"
 #else
