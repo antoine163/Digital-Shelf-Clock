@@ -36,23 +36,17 @@
 
 // mpLib
 #include "mp/utils/fifo.h"
-
-// FreeRtos
-#if defined MP_USE_FREERTOS
-#include "FreeRTOS.h"
-#include "task.h"
-#endif
+#include "mp_devices.h"
 
 // Define macro ----------------------------------------------------------------
 #define MP_PORT_UART(dev)           ((mp_uart_port_t *)dev)
 #define MP_PORT_UART_GET(devid)     MP_PORT_UART(mp_device_get(devid))
 
 // Define ----------------------------------------------------------------------
-#define MP_UART_PORT_NOTIFY_NONE      (0<<0)
-#define MP_UART_PORT_NOTIFY_TXFIFO_NO_FULL      (1<<0)
-#define MP_UART_PORT_NOTIFY_TXFIFO_EMPTY        (1<<1)
-#define MP_UART_PORT_NOTIFY_RXFIFO_NO_EMPTY     (1<<2)
-//#define MP_UART_PORT_NOTIFY_RXFIFO_FRAME        (1<<3)
+#define MP_UART_PORT_SYNC_TXFIFO_NO_FULL    (1<<0)
+#define MP_UART_PORT_SYNC_TX_COMPLETE       (1<<1)
+#define MP_UART_PORT_SYNC_RXFIFO_NO_EMPTY   (1<<2)
+//#define MP_UART_PORT_SYNC_RXFIFO_FRAME        (1<<3)
 
 // Structure -------------------------------------------------------------------
 typedef struct
@@ -62,12 +56,6 @@ typedef struct
     
     mp_fifo_t * fifoRx;
     mp_fifo_t * fifoTx;
-    
-#if defined MP_USE_FREERTOS
-    TaskHandle_t xTaskHandle; // Note: Avec FreeRtos un driver peut étre utiliser que d'en une seulle tache
-    UBaseType_t uxIndexToNotify;// Du cela pourai peut étre étre intereser de déplaser xTaskHandle et uxIndexToNotify dans la structure mer device_t et ajouter une fonction pour changer la tache ou fonction le driver
-    uint32_t notify;
-#endif
 }mp_uart_port_t;
 
 // Extern protected global variables -------------------------------------------
@@ -102,9 +90,6 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
 {
     USART_TypeDef * uartx = dev->uartx;
     
-// Todo Mise au preopre !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    
     // -- Manage transmit data --
     
     // The USART Tx FiFo is empty ?
@@ -125,14 +110,9 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         // Disable USART Tx FiFo empty interrupt if the data Tx FiFo is empty.
         if (mp_fifo_isEmpty(dev->fifoTx))
             LL_USART_DisableIT_TXFE(uartx);
-            
-    #if defined MP_USE_FREERTOS
-        if (dev->notify & MP_UART_PORT_NOTIFY_TXFIFO_NO_FULL)
-        {
-            UBaseType_t uxIndexToNotify = MP_DEVICE_ID(MP_DEVICE(dev)->devid);
-            vTaskNotifyGiveIndexedFromISR(dev->xTaskHandle, uxIndexToNotify, &xHigherPriorityTaskWoken);
-        }
-    #endif
+        
+        // Send synchro to unblock task
+        MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_TXFIFO_NO_FULL);
     }
 
     // The USART Transition is complete ?
@@ -143,13 +123,8 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         // waitEndTransmit() function. So, disable only it.
         LL_USART_DisableIT_TC(uartx);
         
-    #if defined MP_USE_FREERTOS
-        if (dev->notify & MP_UART_PORT_NOTIFY_TXFIFO_EMPTY)
-        {
-            UBaseType_t uxIndexToNotify = MP_DEVICE_ID(MP_DEVICE(dev)->devid);
-            vTaskNotifyGiveIndexedFromISR(dev->xTaskHandle, uxIndexToNotify, &xHigherPriorityTaskWoken);
-        }
-    #endif
+        // Send synchro to unblock task
+        MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_TX_COMPLETE);
     }
     
     // -- Manage receive data --
@@ -192,17 +167,9 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         if (mp_fifo_isFull(dev->fifoRx))
             LL_USART_DisableIT_RXFF(uartx);
         
-    #if defined MP_USE_FREERTOS
-        if (dev->notify & MP_UART_PORT_NOTIFY_RXFIFO_NO_EMPTY)
-        {
-            UBaseType_t uxIndexToNotify = MP_DEVICE_ID(MP_DEVICE(dev)->devid);
-            vTaskNotifyGiveIndexedFromISR(dev->xTaskHandle, uxIndexToNotify, &xHigherPriorityTaskWoken);
-        }
-    #endif
+        // Send synchro to unblock task
+        MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_RXFIFO_NO_EMPTY);
     }
-    
-// Todo Mise au preopre !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
 __attribute__((always_inline))
@@ -224,6 +191,9 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
         // Disable TXE interrupt if Tx FiFo in empty.
         if (mp_fifo_isEmpty(dev->fifoTx))
             LL_USART_DisableIT_TXE_TXFNF(uartx);
+            
+        // Send synchro to unblock task
+        MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_TXFIFO_NO_FULL);
     }
     
     // The USART Transition is complete ?
@@ -234,8 +204,8 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
         // waitEndTransmit() function. So, disable only it.
         LL_USART_DisableIT_TC(uartx);
 
-#if defined MP_USE_FREERTOS
-#endif
+        // Send synchro to unblock task
+        MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_TX_COMPLETE);
     }
     
     // -- Manage receive data --
@@ -250,25 +220,44 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
         // Disable 'RX Not Empty' Interrupt if the data Rx FiFo is full.
         if (mp_fifo_isFull(dev->fifoRx))
             LL_USART_DisableIT_RXNE_RXFNE(uartx);
+            
+        // Send synchro to unblock task
+        MP_DEVICE_SEND_SYNC_FROM_ISR(dev, MP_UART_PORT_SYNC_RXFIFO_NO_EMPTY);
     }
 }
 
 __attribute__((always_inline))
 static inline void mp_uart_port_usart1_isr()
 {
-    if (IS_UART_FIFO_INSTANCE(USART1))
-        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart1_dev);
-    else
+#if defined MP_USE_FREERTOS
+    MP_DEVICE(_mp_uart_port_usart1_dev)->higherPriorityTaskWoken = pdFALSE;
+#endif
+
+    //if (IS_UART_FIFO_INSTANCE(USART1))
+        //mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart1_dev);
+    //else
         mp_uart_port_usartx_isr(_mp_uart_port_usart1_dev);
+
+#if defined MP_USE_FREERTOS
+    portYIELD_FROM_ISR(MP_DEVICE(_mp_uart_port_usart1_dev)->higherPriorityTaskWoken);
+#endif
 }
 
 __attribute__((always_inline))
 static inline void mp_uart_port_usart2_isr()
 {
-    if (IS_UART_FIFO_INSTANCE(USART2))
-        mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart2_dev);
-    else
+#if defined MP_USE_FREERTOS
+    MP_DEVICE(_mp_uart_port_usart2_dev)->higherPriorityTaskWoken = pdFALSE;
+#endif
+
+    //if (IS_UART_FIFO_INSTANCE(USART2))
+        //mp_uart_port_usartx_fifo_isr(_mp_uart_port_usart2_dev);
+    //else
         mp_uart_port_usartx_isr(_mp_uart_port_usart2_dev);
+
+#if defined MP_USE_FREERTOS
+    portYIELD_FROM_ISR(MP_DEVICE(_mp_uart_port_usart2_dev)->higherPriorityTaskWoken);
+#endif
 }
 
 #endif // MP_UART_PORT_H

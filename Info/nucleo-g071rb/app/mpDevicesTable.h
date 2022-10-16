@@ -31,8 +31,8 @@
  *
  * @p device the name of instance driver
  *
- * @p driver_name pressie 'port' to use the driver of the port. Or pressie other name
- * to use a specified driver
+ * @p driver_name pressie 'port' to use the driver of the port. Or pressie other
+ * name to use a specified driver
  *
  * @p peripheral pointer to a peripheral to use, NULL if not defined here.
  *

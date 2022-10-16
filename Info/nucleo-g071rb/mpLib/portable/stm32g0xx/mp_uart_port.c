@@ -108,8 +108,7 @@ int mp_uart_port_init(mp_device_id_t devid)
     USART_TypeDef * uartx = dev->uartx;
 
 #if defined MP_USE_FREERTOS
-    dev->xTaskHandle = xTaskGetCurrentTaskHandle();
-    //   6760	    108	   4564	  11432	   2ca8	digital_shelf_clock.elf
+    MP_DEVICE(dev)->taskToNotify = xTaskGetCurrentTaskHandle();
 #endif
     
     // USART1
@@ -430,8 +429,8 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
     // Todo activer ou pas LL_USART_OVERSAMPLING_16
     
     // Enable a FiFo mode is the USART is compatible.
-    if (IS_UART_FIFO_INSTANCE(uartx))
-        LL_USART_EnableFIFO(uartx);
+    //if (IS_UART_FIFO_INSTANCE(uartx))
+        //LL_USART_EnableFIFO(uartx);
     
     /* (5) Enable USART *********************************************************/
     LL_USART_Enable(uartx);
@@ -477,42 +476,10 @@ ssize_t mp_uart_port_write(mp_device_id_t devid, const void * buf, size_t nbyte,
     // Write all data until complete or timeout.
     do
     {
-    #if defined MP_USE_FREERTOS
-//TODO fair le mise au propre !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // Initialism xTimeOut to manager timeout
-        TimeOut_t xTimeOut;
-        vTaskSetTimeOutState( &xTimeOut );
-        
-        
-        dev->notify = MP_UART_PORT_NOTIFY_TXFIFO_NO_FULL;
-    
-        // Wait free byte in a FiFo or quit if timeout.
-        while (mp_fifo_isFull(dev->fifoTx))
-        {
-            if (xTaskCheckForTimeOut( &xTimeOut, &timeout ) == pdTRUE)
-            {
-                dev->notify = MP_UART_PORT_NOTIFY_NONE;
-                return n;
-            }
-            
-            ulTaskNotifyTakeIndexed(MP_DEVICE_ID(MP_DEVICE(dev)->devid), pdTRUE, timeout);
-            //__NOP();
-        }
-        
-        dev->notify = MP_UART_PORT_NOTIFY_NONE;
-    #else
-        // Get time to manager timeout
-        mp_tick_t tickStart = mp_tick_get();
-    
-        // Wait free byte in a FiFo or quit if timeout.
-        while (mp_fifo_isFull(dev->fifoTx))
-        {
-            if (mp_tick_get() - tickStart >= timeout)
-                return n;
-            
-            __WFI();
-        }
-    #endif
+        // Wait synchro to available byte in TX FiFo
+        MP_DEVICE_WAIT_SYNC(dev,    !mp_fifo_isFull(dev->fifoTx),
+                                    MP_UART_PORT_SYNC_TXFIFO_NO_FULL,
+                                    timeout, return n);
         
         // Push data to FiFo
         ATOMIC_CLEAR_BIT(uartx->CR1, cr1ItMask); 
@@ -586,49 +553,11 @@ int mp_uart_port_waitEndTransmit(mp_device_id_t devid, mp_tick_t timeout)
 {
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
-    
-#if defined MP_USE_FREERTOS
-//TODO fair le mise au propre !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Initialism xTimeOut to manager timeout
-    TimeOut_t xTimeOut;
-    vTaskSetTimeOutState( &xTimeOut );
-    
-    LL_USART_EnableIT_TC(uartx);
-    dev->notify = MP_UART_PORT_NOTIFY_TXFIFO_EMPTY;
-    
-    
-    // Wait free byte in a FiFo or quit if timeout.
-    while(!LL_USART_IsActiveFlag_TC(uartx))
-    {
-        if (xTaskCheckForTimeOut( &xTimeOut, &timeout ) == pdTRUE)
-        {
-            dev->notify = MP_UART_PORT_NOTIFY_NONE;
-            return 0;
-        }
-        
-        ulTaskNotifyTakeIndexed(MP_DEVICE_ID(MP_DEVICE(dev)->devid), pdTRUE, timeout);
-        //__NOP();
-    }
-    
-    dev->notify = MP_UART_PORT_NOTIFY_NONE;
-#else
-    // Get initial time to manager timeout
-    mp_tick_t tickStart = mp_tick_get();
-    
-    // Enable 'transmission complete interrupt' to wakeup the CPU when the
-    // last byte as transferred.
-    LL_USART_EnableIT_TC(uartx);
-    
-    // Wait the Transmission Complete flag or timeout
-    while(!LL_USART_IsActiveFlag_TC(uartx))
-    {
-        if (mp_tick_get() - tickStart >= timeout)
-            return 0;
-            
-        __WFI();
-    }
-#endif
 
+    LL_USART_EnableIT_TC(uartx);
+    MP_DEVICE_WAIT_SYNC(dev,    LL_USART_IsActiveFlag_TC(uartx),
+                                MP_UART_PORT_SYNC_TX_COMPLETE,
+                                timeout, return 0);
     return 1;
 }
 
@@ -637,53 +566,10 @@ int mp_uart_port_waitDataReceive(mp_device_id_t devid, mp_tick_t timeout)
     mp_uart_port_t * dev = MP_PORT_UART_GET(devid);
     USART_TypeDef * uartx = dev->uartx;
     
-#if defined MP_USE_FREERTOS
-//TODO fair le mise au propre !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Initialism xTimeOut to manager timeout
-    TimeOut_t xTimeOut;
-    vTaskSetTimeOutState( &xTimeOut );
-    
-    
-    
     LL_USART_EnableIT_RXNE_RXFNE(uartx);
-    dev->notify = MP_UART_PORT_NOTIFY_RXFIFO_NO_EMPTY;
-    
-    // Wait free byte in a FiFo or quit if timeout.
-    while(mp_fifo_isEmpty(dev->fifoRx))
-    {
-        if (xTaskCheckForTimeOut( &xTimeOut, &timeout ) == pdTRUE)
-        {
-            dev->notify = MP_UART_PORT_NOTIFY_NONE;
-            return 0;
-        }
-        
-        ulTaskNotifyTakeIndexed(MP_DEVICE_ID(MP_DEVICE(dev)->devid), pdTRUE, timeout);
-        //__NOP();
-    }
-    
-    dev->notify = MP_UART_PORT_NOTIFY_NONE;
-#else
-    // No byte available in Rx FiFo ?
-    if (mp_fifo_isEmpty(dev->fifoRx))
-    {
-        // Get initial time to manager timeout
-        mp_tick_t tickStart = mp_tick_get();
-    
-        // Enable RX Not Empty and RX FIFO Not Empty Interrupt to wakeup the
-        // CPU when the a byte as receive.
-        LL_USART_EnableIT_RXNE_RXFNE(uartx);
-    
-        // Wait available byte or timeout.
-        while(mp_fifo_isEmpty(dev->fifoRx))
-        {
-            if (mp_tick_get() - tickStart >= timeout)
-                return 0;
-                
-            __WFI();
-        }
-    }
-#endif
-
+    MP_DEVICE_WAIT_SYNC(dev,    !mp_fifo_isEmpty(dev->fifoRx),
+                                MP_UART_PORT_SYNC_RXFIFO_NO_EMPTY,
+                                timeout, return 0);
     return mp_fifo_used(dev->fifoRx);
 }
 

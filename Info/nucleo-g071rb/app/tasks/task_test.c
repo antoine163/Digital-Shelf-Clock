@@ -143,8 +143,10 @@ void task_test( void* pvParameters )
     //mp_uart_config(dev_tty, 115200, 8, 0, 1);
     mp_uart_config(dev_tty, 2000000, 8, 0, 1);
     
-
+    mp_gpio_up(PIN_LED_RED);
     mp_uart_printf(dev_tty, "\r\nnucleo-g071rb inisilised !\r\n");
+    mp_uart_waitEndTransmit(dev_tty, MP_TICK_MAX);
+    mp_gpio_down(PIN_LED_RED);
     mp_uart_printf(dev_tty, "Write something:");
     
     while(1)

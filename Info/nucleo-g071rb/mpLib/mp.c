@@ -59,11 +59,21 @@
 // Undef all macro defined device 
 #include "mp_undef_all_dev.h"
 
+
+#if defined MP_USE_FREERTOS
+    #define MP_DEV_STRUCT_INIT_FREERTOS(dev_struct)                    \
+        .dev_struct.syncType = 0,                                      \
+        .dev_struct.taskToNotify = NULL,
+#else
+    #define MP_DEV_STRUCT_INIT_FREERTOS(dev_struct)
+#endif
+
 // Define all device macro to build instances
 #define MP_DEV_GPIO(device, driver, peripheral)                        \
     mp_gpio_##driver##_t _##device =                                   \
     {                                                                  \
         .gpio_parent.device_parent.devid = device,                     \
+        MP_DEV_STRUCT_INIT_FREERTOS(gpio_parent.device_parent)         \
         .gpiox = peripheral,                                           \
     };
 
@@ -71,6 +81,7 @@
     mp_uart_##driver##_t _##device =                                   \
     {                                                                  \
         .uart_parent.device_parent.devid = device,                     \
+        MP_DEV_STRUCT_INIT_FREERTOS(uart_parent.device_parent)         \
         .uartx = peripheral,                                           \
     };
 
