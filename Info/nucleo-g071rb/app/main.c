@@ -27,41 +27,85 @@
 #include "board/board.h"
 #include "tasks/task_test.h"
 
+// Driver from mpLib
+#include "mp/drivers/interrupt.h"
+#include "mp/drivers/tick.h"
+#include "mp/drivers/gpio.h"
+
 // FreeRtos
 #include "FreeRTOS.h"
 #include "task.h"
 
 // Implemented functions -------------------------------------------------------
-
-int main()
-{
-    systemInit();
-    
-    
-    
-    /* Structure that will hold the TCB of the task being created. */
-    StaticTask_t xTaskBuffer;
+/* Structure that will hold the TCB of the task being created. */
+    StaticTask_t xTaskBuffer_test1;
+    StaticTask_t xTaskBuffer_test2;
 
     /* Buffer that the task being created will use as its stack.  Note this is
     an array of StackType_t variables.  The size of StackType_t is dependent on
     the RTOS port. */
-    StackType_t xStack[ configMINIMAL_STACK_SIZE ];
+    StackType_t xStack_test1[ configMINIMAL_STACK_SIZE ];
+    StackType_t xStack_test2[ configMINIMAL_STACK_SIZE ];
+    
+int main()
+{
+    systemInit();
+    
+    mp_interrupt_init();
+    mp_tick_init();
+    
+    
+    
+    // Init gpios
+    mp_gpio_init(dev_gpioa);
+    mp_gpio_init(dev_gpiob);
+    mp_gpio_init(dev_gpioc);
+    mp_gpio_init(dev_gpiod);
+    mp_gpio_init(dev_gpiof);
+    
+    /* GPIO OUT:    name,           type,   pull,   default level             */
+    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     0);
+    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     1);
+    MP_GPIO_OUT(PIN_LED_GREEN,  PUSH_PULL,  NO,     LOW);
+    MP_GPIO_OUT(PIN_LED_YELLOW, PUSH_PULL,  NO,     LOW);
+    /* AFF_7SEG                                                               */
+    MP_GPIO_OUT(AFF_7SEG,       PUSH_PULL,  NO,     MASK(0x7f));
+    /* GPIO IN:     name,                   pull                              */
+    MP_GPIO_IN( BP1,                        NO);
+    MP_GPIO_IN( BP2,                        UP);
+    MP_GPIO_IN( PIN_BP_LED,                 UP);
+
+    // grep "<mp[^ ]*>:" digital_shelf_clock.lss
+    // arm-none-eabi-readelf digital_shelf_clock.elf -wi > /tmp/readelf
+    //mp_gpio_enableIsr(BP1, MP_GPIO_TRIGGER_FALLING, bp1Handler);
+    //mp_gpio_enableIsr(BP2, MP_GPIO_TRIGGER_FALLING, bp2Handler);
+    //mp_gpio_enableIsr(PIN_BP_LED, MP_GPIO_TRIGGER_RISING, bpLedHandler);
+    
+    
+    
     
     /* Create the task without using any dynamic memory allocation. */
      xTaskCreateStatic(
-                  task_test,       /* Function that implements the task. */
-                  "Test",          /* Text name for the task. */
-                  configMINIMAL_STACK_SIZE,      /* Number of indexes in the xStack array. */
+                  task_test1,       /* Function that implements the task. */
+                  "Test1",          /* Text name for the task. */
+                  sizeof(xStack_test1)/sizeof(StackType_t),      /* Number of indexes in the xStack array. */
                   ( void * ) NULL,    /* Parameter passed into the task. */
                   tskIDLE_PRIORITY+1,/* Priority at which the task is created. */
-                  xStack,          /* Array to use as the task's stack. */
-                  &xTaskBuffer );  /* Variable to hold the task's data structure. */
+                  xStack_test1,          /* Array to use as the task's stack. */
+                  &xTaskBuffer_test1 );  /* Variable to hold the task's data structure. */
     
-    
-    
-    
+    ///* Create the task without using any dynamic memory allocation. */
+     xTaskCreateStatic(
+                  task_test2,       /* Function that implements the task. */
+                  "Test2",          /* Text name for the task. */
+                  sizeof(xStack_test2)/sizeof(StackType_t),      /* Number of indexes in the xStack array. */
+                  ( void * ) NULL,    /* Parameter passed into the task. */
+                  tskIDLE_PRIORITY+1,/* Priority at which the task is created. */
+                  xStack_test2,          /* Array to use as the task's stack. */
+                  &xTaskBuffer_test2 );  /* Variable to hold the task's data structure. */
+
     vTaskStartScheduler();
-    
+
     return 0;
 }
 

@@ -35,7 +35,7 @@
 #include "mp/utils/fifo.h"
 
 // Driver from mpLib
-#include "mp/drivers/interrupt.h"
+//#include "mp/drivers/interrupt.h"
 #include "mp/drivers/gpio.h"
 #include "mp/drivers/uart.h"
 //#include "mp/drivers/adc.h"
@@ -94,133 +94,44 @@ unsigned char digit[] = {0xc0,   //0
 //void ws2812b_reset();
 void ws2812b_update();
 int ws2812b_update_led = 0;
-volatile uint8_t brightness_led = 10;
+volatile uint8_t brightness_led = 1;
 volatile int32_t write_led_index = 0;
 volatile uint32_t write_led_cmpUp = 1;
-void task_test( void* pvParameters )
+void task_test1( void* pvParameters )
 {
-    (void)pvParameters;  
-    
-    mp_interrupt_init();
-    mp_tick_init();
-    
-    // Init gpios
-    mp_gpio_init(dev_gpioa);
-    mp_gpio_init(dev_gpiob);
-    mp_gpio_init(dev_gpioc);
-    mp_gpio_init(dev_gpiod);
-    mp_gpio_init(dev_gpiof);
-    
-    /* GPIO OUT:    name,           type,   pull,   default level             */
-    MP_GPIO_OUT(LED_GREEN,      PUSH_PULL,  NO,     0);
-    MP_GPIO_OUT(PIN_LED_RED,    PUSH_PULL,  NO,     0);
-    MP_GPIO_OUT(PIN_LED_GREEN,  PUSH_PULL,  NO,     LOW);
-    MP_GPIO_OUT(PIN_LED_YELLOW, PUSH_PULL,  NO,     LOW);
-    /* AFF_7SEG                                                               */
-    MP_GPIO_OUT(AFF_7SEG,       PUSH_PULL,  NO,     MASK(0x7f));
-    /* GPIO IN:     name,                   pull                              */
-    MP_GPIO_IN( BP1,                        NO);
-    MP_GPIO_IN( BP2,                        UP);
-    MP_GPIO_IN( PIN_BP_LED,                 UP);
+    (void)pvParameters;
 
-    // grep "<mp[^ ]*>:" digital_shelf_clock.lss
-    // arm-none-eabi-readelf digital_shelf_clock.elf -wi > /tmp/readelf
-    mp_gpio_enableIsr(BP1, MP_GPIO_TRIGGER_FALLING, bp1Handler);
-    mp_gpio_enableIsr(BP2, MP_GPIO_TRIGGER_FALLING, bp2Handler);
-    mp_gpio_enableIsr(PIN_BP_LED, MP_GPIO_TRIGGER_RISING, bpLedHandler);
-    
-    
-    
-    //mp_uart_init(dev_ws2812b);
-    //mp_uart_config(dev_ws2812b, 2500000, 7, 0, 1);
-    ////mp_uart_config(dev_ws2812b, 8000000, 8, 0, 1); // Todo: verifier si le 8MHz est possible avec la clock de 'uart ...
-    ////mp_uart_printf(dev_ws2812b, "dev_ws2812b inisilised !\r\n");
-    ////ws2812b_reset();
-    ////mp_tick_delay(MP_TICK_FROM_MS(1));
-    ////ws2812b_update();
-    
     mp_uart_init(dev_tty);
-    //mp_uart_config(dev_tty, 115200, 8, 0, 1);
     mp_uart_config(dev_tty, 2000000, 8, 0, 1);
     
-    mp_gpio_up(PIN_LED_RED);
     mp_uart_printf(dev_tty, "\r\nnucleo-g071rb inisilised !\r\n");
-    mp_uart_waitEndTransmit(dev_tty, MP_TICK_MAX);
-    mp_gpio_down(PIN_LED_RED);
     mp_uart_printf(dev_tty, "Write something:");
-    
-    while(1)
+
+
+    while (1)
     {
         uint8_t buf[32];
         memset(buf, 0, sizeof(buf));
         int n = mp_uart_read(dev_tty, buf, sizeof(buf), MP_TICK_MAX);
         mp_uart_write(dev_tty, buf, n, -1);
     }
+}
+
+void task_test2( void* pvParameters )
+{
+    (void)pvParameters;
     
-    while(1)
-    {
-        mp_gpio_toggle(LED_GREEN);
-        mp_tick_delayMs(500);
-    }
+    mp_uart_init(dev_ws2812b);
+    mp_uart_config(dev_ws2812b, 2500000, 7, 0, 1);
+    //////mp_uart_config(dev_ws2812b, 8000000, 8, 0, 1); // Todo: verifier si le 8MHz est possible avec la clock de 'uart ...
     
-#if 0
-    int cpt = 0;
-    while (1)
+    
+     while (1)
     {
-        //vTaskDelay(450 / portTICK_PERIOD_MS);
-        //LL_mDelay(450);
-        //mp_gpio_up(PIN_LED_GREEN);
-        mp_gpio_toggle(PIN_LED_YELLOW);
-        mp_gpio_up(LED_GREEN);
-        
-        //vTaskDelay(50 / portTICK_PERIOD_MS);
-        //LL_mDelay(50);
-        //mp_gpio_down(PIN_LED_GREEN);
-        mp_gpio_toggle(PIN_LED_YELLOW);
-        mp_gpio_down(LED_GREEN);
-        
-        //mp_uart_printf(drv_uart1, "Hello:%u:%u\r\n", cpt, cpt2);
-        cpt++;
-        if(cpt >= (int)sizeof(digit))
-            cpt = 0;
-        
-        
-        //unsigned int val = mp_gpio_getValue(PIN_BP_LED);
-        //mp_gpio_setValue(PIN_LED_RED, val);
-        
-        //mp_gpio_setLevel(AFF_7SEG, digit[cpt]);
-        mp_gpio_setLevel(AFF_7SEG, digit[cpt2]);
-        
-        mp_uart_printf(dev_tty, "cpt:%u\tcpt2:%u\tbrightness_led:%u\r\n", cpt, cpt2, brightness_led);
-        //mp_uart_printf(dev_tty, "%u\r\n", cpt);
-        
-        
-        
-        //for(int t=0; t<500; t++)
-        //{
-            //__NOP();
-        //}
-        //mp_gpio_up(PIN_LED_GREEN);
         mp_uart_waitEndTransmit(dev_ws2812b, MP_TICK_MAX);
-        mp_tick_delay(1);
+        mp_tick_delayMs(2);
         ws2812b_update();
-        //mp_gpio_down(PIN_LED_GREEN);
-        //mp_tick_delayMs(15);
-        
-        
-        //if (ws2812b_update_led)
-        //{
-            //ws2812b_update();
-            //ws2812b_update_led = 0;
-        //}
-        
-        ////mp_adc_get_volatag(&drv_adc1, 0);
-        ////mp_adc_get_volatag(&drv_adc1, 4);
-        ////mp_adc_get_volatag(&drv_adc1, 6);
-        
-        ////mp_adc_get_volatag(&drv_adc2, 0);
     }
-#endif
 }
 
 void bp1Handler(mp_gpio_trigger_t)
@@ -251,7 +162,10 @@ void bpLedHandler(mp_gpio_trigger_t)
     //ws2812b_update_led = 1;
 }
 
-
+//#define NB_LED  (60*5)
+//uint32_t colorLeds[NB_LED+3];
+    
+    
 void ws2812b_update()
 {
     #define CODE1_0  /* (1) MSB / Stop bit */ 0b1111111 /* (0) LSB / Start bit */
@@ -262,11 +176,11 @@ void ws2812b_update()
     #define CODE3_1  /* (1) MSB / Stop bit */ 0b0011111 /* (0) LSB / Start bit */
     
     
-    #define NB_LED  (3 * 100) // 255
-    //#define NB_LED  (3 * 1) // 255
+    //#define NB_LED
+    #define NB_LED  (60*5)
     
     //Todo: atendre 50us apre le dernier carecter ecrite de la fifo uart
-    uint32_t colorLeds[NB_LED];
+    uint32_t colorLeds[NB_LED+3];
     
     for (int i=0; i<NB_LED;)
     {
@@ -279,17 +193,21 @@ void ws2812b_update()
     }
     
     
-    colorLeds[write_led_index] = 0x00ffffff;
+    colorLeds[write_led_index] =    ( brightness_led * 10 ) << 16 | 
+                                    ( brightness_led * 10 ) << 8 | 
+                                    ( brightness_led * 10 ) << 0;
     //colorLeds[write_led_index] = 0;
     
     
     if (write_led_cmpUp)
     {
         write_led_index+=1;
-        if(write_led_index >= NB_LED)
+        //if(write_led_index >= NB_LED)
+        if(write_led_index >= 16)
         {
             write_led_cmpUp = 0;
-            write_led_index = NB_LED-2;
+            //write_led_index = NB_LED-2;
+            write_led_index = 16-2;
         }
     }
     else
@@ -298,7 +216,7 @@ void ws2812b_update()
         if(write_led_index < 0)
         {
             write_led_cmpUp = 1;
-            write_led_index = 0;
+            write_led_index = 1;
         }
     }
     
@@ -334,16 +252,15 @@ void ws2812b_update()
             //mp_gpio_up(PIN_LED_GREEN);
             //mp_uart_write(dev_ws2812b, &bufColorLeds, 1);
             //mp_gpio_down(PIN_LED_GREEN);
-            
         }
         
         if(bufColorLedsIndex >= sizeof(bufColorLeds))
         {
-            mp_gpio_up(PIN_LED_GREEN);
+            //mp_gpio_up(PIN_LED_GREEN);
             mp_uart_write(dev_ws2812b, &bufColorLeds, bufColorLedsIndex, MP_TICK_MAX);
             //mp_uart_waitEndTransmit(dev_ws2812b, MP_TICK_MAX);
             
-            mp_gpio_down(PIN_LED_GREEN);
+            //mp_gpio_down(PIN_LED_GREEN);
             
             bufColorLedsIndex = 0;
         }
@@ -351,9 +268,9 @@ void ws2812b_update()
     
     if(bufColorLedsIndex > 0)
     {
-        mp_gpio_up(PIN_LED_GREEN);
+        //mp_gpio_up(PIN_LED_GREEN);
         mp_uart_write(dev_ws2812b, &bufColorLeds, bufColorLedsIndex, MP_TICK_MAX);
-        mp_gpio_down(PIN_LED_GREEN);
+        //mp_gpio_down(PIN_LED_GREEN);
     }
 }
 

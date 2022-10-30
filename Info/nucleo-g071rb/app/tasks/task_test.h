@@ -26,6 +26,7 @@
 #define TASK_TEST_H
 
 // Prototype functions ---------------------------------------------------------
-void task_test( void* pvParameters );
+void task_test1( void* pvParameters );
+void task_test2( void* pvParameters );
 
 #endif // TASK_TEST_H

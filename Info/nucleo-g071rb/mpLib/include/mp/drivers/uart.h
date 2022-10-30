@@ -273,15 +273,15 @@ static inline int mp_uart_ctl(mp_device_id_t devid, int request, ...)
 static inline int mp_uart_printf(mp_device_id_t devid, char const * format, ...)
 {
     int ret = -1;
-    //va_list ap;
-    //char tmpStr[128];
+    va_list ap;
+    char tmpStr[128];
     
-    //va_start(ap, format);
-    //int n = vsnprintf(tmpStr, sizeof(tmpStr), format, ap);
-    //va_end(ap);
-    //ret = mp_uart_write(devid, tmpStr, n, MP_TICK_MAX);
+    va_start(ap, format);
+    int n = vsnprintf(tmpStr, sizeof(tmpStr), format, ap);
+    va_end(ap);
+    ret = mp_uart_write(devid, tmpStr, n, MP_TICK_MAX);
     
-    ret = mp_uart_write(devid, format, strlen(format), MP_TICK_MAX);
+    //ret = mp_uart_write(devid, format, strlen(format), MP_TICK_MAX);
     
     return ret;
 }

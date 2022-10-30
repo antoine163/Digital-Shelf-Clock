@@ -51,7 +51,7 @@
 #define MP_USART1_TX_PULL           LL_GPIO_PULL_UP
 #define MP_USART1_TX_OUTPUT         LL_GPIO_OUTPUT_PUSHPULL
 #define MP_USART1_TX_PIN_LEVEL      LL_USART_TXPIN_LEVEL_STANDARD
-#define MP_USART1_TX_FIFO_SIZE      ( 1024*2 ) // Si 0 ou pas définie la fonction write n'a plus d'effet
+#define MP_USART1_TX_FIFO_SIZE      ( 128 ) // Si 0 ou pas définie la fonction write n'a plus d'effet
 
 #define MP_USART1_CLKSOURCE         LL_RCC_USART1_CLKSOURCE_PCLK1
 #define MP_USART1_TXRX_SWAPPED      LL_USART_TXRX_STANDARD
@@ -66,7 +66,7 @@
 #define MP_USART2_TX_PULL           LL_GPIO_PULL_UP
 #define MP_USART2_TX_OUTPUT         LL_GPIO_OUTPUT_PUSHPULL
 #define MP_USART2_TX_PIN_LEVEL      LL_USART_TXPIN_LEVEL_STANDARD
-#define MP_USART2_TX_FIFO_SIZE      128
+#define MP_USART2_TX_FIFO_SIZE      64
 
 #define MP_USART2_RX_GPIO_Port      GPIOA
 #define MP_USART2_RX_Pin            LL_GPIO_PIN_3
@@ -74,7 +74,7 @@
 #define MP_USART2_RX_AF             LL_GPIO_AF_1
 #define MP_USART2_RX_PULL           LL_GPIO_PULL_UP
 #define MP_USART2_RX_PIN_LEVEL      LL_USART_RXPIN_LEVEL_STANDARD
-#define MP_USART2_RX_FIFO_SIZE      128
+#define MP_USART2_RX_FIFO_SIZE      64
 
 #define MP_USART2_CLKSOURCE         LL_RCC_USART2_CLKSOURCE_PCLK1
 #define MP_USART2_TXRX_SWAPPED      LL_USART_TXRX_STANDARD

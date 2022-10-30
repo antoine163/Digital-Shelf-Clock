@@ -39,6 +39,30 @@
 #include <stdbool.h>
 
 // Macro -----------------------------------------------------------------------
+/** 
+ * @brief Initialize a FiFo at the declaration.
+ * 
+ * This macro initialize the FiFo structure with a storage buffer.
+ * 
+ * @param storageBuffer Points to a uint8_t array where will be stor the payload
+ * of FiFo.
+ * @param size Size of @p storageBuffer.
+ * 
+ * For example:
+ * @code
+ * uint8_t myFifoBuffer[32];
+ * mp_fifo_t myFifo = MP_FIFO_INIT(myFifoBuffer, sizeof(myFifoBuffer));
+ * @endcode
+ */
+#define MP_FIFO_INIT(storageBuffer, size)                              \
+    {                                                                  \
+        .buffer     = storageBuffer,                                   \
+        .bufferEnd  = storageBuffer + size,                            \
+        .bufferSize = size,                                            \
+        .writeTo    = storageBuffer,                                   \
+        .readFrom   = storageBuffer,                                   \
+        .used       = 0                                                \
+    }                                                                  \
 
 /** 
  * @brief Macro to push byte in the FiFo.
