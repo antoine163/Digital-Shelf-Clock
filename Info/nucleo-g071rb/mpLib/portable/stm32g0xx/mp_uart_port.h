@@ -162,6 +162,7 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
     {
         do
         {
+            // Get and push in FiFo the new byte
             uint8_t byte = LL_USART_ReceiveData8(uartx);
             MP_FIFO_PUSH_BYTE(dev->fifoRx, byte);
             
@@ -182,7 +183,10 @@ static inline void mp_uart_port_usartx_fifo_isr(mp_uart_port_t * dev)
         // This interruption is enable to wakeup the CPU for the
         // mp_uart_port_read() function.
         
-        // We need to read a byte and push to the Rx FiFo for the Rx FiFo is no
+        // Clean OverRun Error Flag
+        LL_USART_ClearFlag_ORE(uartx);
+        
+        // We need to read a byte and push to the Rx FiFo for than Rx FiFo is no
         // empty and unblock mp_uart_port_read() function.
         uint8_t byte = LL_USART_ReceiveData8(uartx);
         MP_FIFO_PUSH_BYTE(dev->fifoRx, byte);
@@ -249,6 +253,10 @@ static inline void mp_uart_port_usartx_isr(mp_uart_port_t * dev)
     if (    LL_USART_IsEnabledIT_RXNE_RXFNE(uartx)    &&
             LL_USART_IsActiveFlag_RXNE_RXFNE(uartx))
     {
+        // Clean OverRun Error Flag
+        LL_USART_ClearFlag_ORE(uartx);
+        
+        // Get and push in FiFo the new byte
         uint8_t byte = LL_USART_ReceiveData8(uartx);
         MP_FIFO_PUSH_BYTE(dev->fifoRx, byte);
         

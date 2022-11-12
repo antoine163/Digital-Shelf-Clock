@@ -546,13 +546,13 @@ int mp_uart_port_config(mp_device_id_t devid, mp_uart_baudrate_t baudrate,
         // Enable a FiFo mode.
         LL_USART_EnableFIFO(uartx);
         
-        // Enable RX FIFO Full Interrupt if the Rx direction is enabled.
+        // Enable 'RX FIFO Full Interrupt' if the Rx direction is enabled.
         if (LL_USART_GetTransferDirection(uartx) & LL_USART_DIRECTION_RX)
             LL_USART_EnableIT_RXFF(uartx);
     }
     else
     {
-        // Enable RX Not Empty Interrupt if the Rx direction is enabled.
+        // Enable 'RX Not Empty' if the Rx direction is enabled.
         if (LL_USART_GetTransferDirection(uartx) & LL_USART_DIRECTION_RX)
             LL_USART_EnableIT_RXNE_RXFNE(uartx);
     }

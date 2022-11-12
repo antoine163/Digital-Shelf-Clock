@@ -129,7 +129,7 @@ void task_test2( void* pvParameters )
      while (1)
     {
         mp_uart_waitEndTransmit(dev_ws2812b, MP_TICK_MAX);
-        mp_tick_delayMs(2);
+        mp_tick_delayMs(50);
         ws2812b_update();
     }
 }
@@ -162,8 +162,8 @@ void bpLedHandler(mp_gpio_trigger_t)
     //ws2812b_update_led = 1;
 }
 
-//#define NB_LED  (60*5)
-//uint32_t colorLeds[NB_LED+3];
+#define NB_LED  (5*60)
+uint32_t colorLeds[NB_LED+3];
     
     
 void ws2812b_update()
@@ -176,17 +176,17 @@ void ws2812b_update()
     #define CODE3_1  /* (1) MSB / Stop bit */ 0b0011111 /* (0) LSB / Start bit */
     
     
-    //#define NB_LED
-    #define NB_LED  (60*5)
+    ////#define NB_LED
+    //#define NB_LED  (60*5)
     
-    //Todo: atendre 50us apre le dernier carecter ecrite de la fifo uart
-    uint32_t colorLeds[NB_LED+3];
+    ////Todo: atendre 50us apre le dernier carecter ecrite de la fifo uart
+    //uint32_t colorLeds[NB_LED+3];
     
     for (int i=0; i<NB_LED;)
     {
-        colorLeds[i++] = brightness_led << 16; //GRB
-        colorLeds[i++] = brightness_led << 8;
-        colorLeds[i++] = brightness_led << 0;
+        colorLeds[i++] = brightness_led * 1 << 16; //GRB
+        colorLeds[i++] = brightness_led * 1 << 8;
+        colorLeds[i++] = brightness_led * 1 << 0;
         //colorLeds[i++] = 0xffffff; //GRB
         //colorLeds[i++] = 0xffffff;
         //colorLeds[i++] = 0xffffff;
@@ -202,12 +202,12 @@ void ws2812b_update()
     if (write_led_cmpUp)
     {
         write_led_index+=1;
-        //if(write_led_index >= NB_LED)
-        if(write_led_index >= 16)
+        if(write_led_index >= NB_LED)
+        //if(write_led_index >= 16)
         {
             write_led_cmpUp = 0;
-            //write_led_index = NB_LED-2;
-            write_led_index = 16-2;
+            write_led_index = NB_LED-2;
+            //write_led_index = 16-2;
         }
     }
     else
